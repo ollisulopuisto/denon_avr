@@ -347,6 +347,9 @@ class DenonAvrSpeakerSize(DenonAvrEntity, SelectEntity):
         self._group = group
         self._attr_entity_registry_enabled_default = enabled
         sizes = coordinator.device.profile.speakers.get("sizes", {}).get("options", {})
+        sizes = dict(sizes)
+        if group == "SUA":  # receivers accept SSSPCSUA NON (no surround speakers)
+            sizes[coordinator.device.profile.speakers.get("absent_token", "NON")] = "None"
         self._token_to_label = dict(sizes)
         self._label_to_token = {label: token for token, label in sizes.items()}
         self._attr_options = list(sizes.values())
