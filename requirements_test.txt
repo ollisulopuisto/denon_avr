@@ -1,0 +1,4 @@
+# Test dependencies for the protocol library in custom_components/denon_avr/avr.
+# That package has no Home Assistant dependency, so the tests run without HA.
+pytest>=8
+aiohttp>=3.9
