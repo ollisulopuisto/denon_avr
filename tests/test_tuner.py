@@ -84,3 +84,8 @@ def test_x3600h_document_does_not_relabel_the_tuner_controls(x3600h_deviceinfo: 
     assert "TUNER" in discovery.features
     assert "TUNER" not in discovery.option_labels
     assert "TUNER" not in discovery.numeric_meta
+
+
+def test_band_labels_keep_the_acronyms() -> None:
+    # Without labels the select would humanise the tokens to "Fm"/"Am".
+    assert load_profile().control("tuner_band").get("labels") == ["FM", "AM"]

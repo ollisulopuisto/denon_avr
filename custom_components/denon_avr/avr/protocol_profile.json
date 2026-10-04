@@ -997,6 +997,7 @@
       "prefix": "TMAN",
       "exact_enum": true,
       "values": ["FM", "AM"],
+      "labels": ["FM", "AM"],
       "doc": "Tuner band. Shares the TMAN prefix with the tuning mode, so it only claims its own values."
     },
     "tuner_mode": {
