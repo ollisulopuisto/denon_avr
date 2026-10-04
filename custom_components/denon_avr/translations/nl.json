@@ -209,6 +209,9 @@
       },
       "imax_subwoofer_output": {
         "name": "IMAX-subwooferuitgang"
+      },
+      "auto_standby": {
+        "name": "Automatische stand-by"
       }
     },
     "switch": {

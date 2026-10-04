@@ -218,7 +218,7 @@ tuning mode (`TMAN`, selects `tuner_band`/`tuner_mode`, exact-enum on the shared
 | `DIM` | Front-display dimmer | `BRI`/`DIM`/`DAR`/`OFF`/`SEL`(toggle) | `[x]` dimmer · gate: FrontDisplay |
 | `ECO` | ECO mode | `ON`/`AUTO`/`OFF` | `[x]` eco_mode · gate: ECO |
 | `SLP` | Sleep timer (main) | `nnn`/`OFF` | `[x]` sleep_timer · gate: SleepTimer |
-| `STBY` | Auto-standby | `15M`/`30M`/`60M`/`OFF` | `[ ]` candidate |
+| `STBY` | Auto-standby | `15M`/`30M`/`60M`/`OFF` | `[x]` auto_standby (core, ungated) |
 | `ILB` | Illumination brightness | `nn` | `[ ]` (models with front illumination) |
 | `TR` / `TR1` / `TR2` | 12 V trigger out | `ON`/`OFF` | `[ ]` candidate (switch per trigger) |
 | `SYPANEL` / `SYREMOTE` | Panel / remote lock | `LOCK ON`/`LOCK OFF`/`+V LOCK ON` | `[ ]` candidate |

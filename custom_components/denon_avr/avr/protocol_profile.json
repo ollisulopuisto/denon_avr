@@ -1086,6 +1086,16 @@
       "values": ["L+M", "LFE"],
       "labels": ["LFE+Main", "LFE"],
       "doc": "IMAX subwoofer output routing (Manual IMAX audio settings). Gated on IMAX rather than IMAXAudioSettings: option labels are looked up by the gate, and the two Auto/Manual labels of IMAXAudioSettings would otherwise replace these."
+    },
+    "auto_standby": {
+      "group": "system",
+      "scope": "core",
+      "kind": "enum",
+      "query": "STBY?",
+      "prefix": "STBY",
+      "values": ["15M", "30M", "60M", "OFF"],
+      "labels": ["15 min", "30 min", "60 min", "Off"],
+      "doc": "Main zone auto-standby. A core setting with no FuncName gate (every network receiver has it); decoded by the generic matcher."
     }
   },
   "actions": {
