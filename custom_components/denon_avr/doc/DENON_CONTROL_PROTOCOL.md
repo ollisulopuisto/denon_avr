@@ -192,7 +192,10 @@ parser disambiguates by content). Additional per-zone settings:
 
 FM/HD tuner. `TFAN`/`TFHD` frequency, `TMAN`/`TMHD` band+mode, `TPAN`/`TPHD`
 presets. Values: `TFANUP/DOWN`, `TFAN<freq>`, `TMANFM/AM/AUTO/MANUAL`,
-`TPANUP/DOWN`, `TPAN01..`, `TPANMEM`. All `[ ]` (fit a tuner/media surface).
+`TPANUP/DOWN`, `TPAN01..`, `TPANMEM`. `[x]` gated on the `TUNER` function: frequency
+(`TFAN?`, sensor `tuner_frequency`), RDS name (`TFANNAME?`, sensor `tuner_station_name`), band and
+tuning mode (`TMAN`, selects `tuner_band`/`tuner_mode`, exact-enum on the shared prefix) and preset
+(`TPAN`, number `tuner_preset`). `[ ]` direct frequency entry, seek/step and `TPANMEM` (action-only).
 
 ## 13. Network & now-playing
 

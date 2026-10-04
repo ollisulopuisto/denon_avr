@@ -34,7 +34,10 @@ async def async_setup_entry(
 
     # Audio information sensors, one per read only field in the profile. The
     # display name comes from the translation files, keyed by the control id.
-    for control_id in device.profile.readonly:
+    for control_id, spec in device.profile.readonly.items():
+        feature = spec.get("feature")
+        if feature and not device.discovery.supports(feature):
+            continue
         entities.append(DenonAvrReadonlySensor(coordinator, control_id))
 
     # The current sound mode as a diagnostic sensor (also on the media player).

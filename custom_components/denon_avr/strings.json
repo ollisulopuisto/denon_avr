@@ -57,6 +57,12 @@
       },
       "mode_info": {
         "name": "Mode Info"
+      },
+      "tuner_frequency": {
+        "name": "Tuner Frequency"
+      },
+      "tuner_station_name": {
+        "name": "Tuner Station"
       }
     },
     "select": {
@@ -179,6 +185,12 @@
       },
       "eq_channel": {
         "name": "Channel"
+      },
+      "tuner_band": {
+        "name": "Tuner Band"
+      },
+      "tuner_mode": {
+        "name": "Tuner Mode"
       }
     },
     "switch": {
@@ -291,6 +303,9 @@
       },
       "enhancer": {
         "name": "Enhancer"
+      },
+      "tuner_preset": {
+        "name": "Tuner Preset"
       }
     },
     "button": {

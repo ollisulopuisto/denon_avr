@@ -312,6 +312,22 @@
       "query": "SYSMI ?",
       "prefix": "SYSMI ",
       "doc": "Informational mode string, for example 'Stereo' (space padded)."
+    },
+    "tuner_frequency": {
+      "kind": "hundredths",
+      "name": "Tuner Frequency",
+      "feature": "TUNER",
+      "query": "TFAN?",
+      "prefix": "TFAN",
+      "doc": "Tuned frequency as six digits in hundredths: 'TFAN010570' is 105.70 (MHz on FM), 'TFAN052200' is 522.00 (kHz on AM). The unit follows the band (TMAN)."
+    },
+    "tuner_station_name": {
+      "kind": "trimmed",
+      "name": "Tuner Station",
+      "feature": "TUNER",
+      "query": "TFANNAME?",
+      "prefix": "TFANNAME",
+      "doc": "RDS station name (space padded). Longer than the TFAN prefix, so it matches first."
     }
   },
   "refresh": {
@@ -971,6 +987,41 @@
       "read_query": "CV?",
       "set_prefix": "CV",
       "doc": "Per channel volume trim. Configured channels, their names and their dB ranges are all discovered from the receiver; live trims are read/written via CV<code>."
+    },
+    "tuner_band": {
+      "group": "tuner",
+      "scope": "feature",
+      "feature": "TUNER",
+      "kind": "enum",
+      "query": "TMAN?",
+      "prefix": "TMAN",
+      "exact_enum": true,
+      "values": ["FM", "AM"],
+      "doc": "Tuner band. Shares the TMAN prefix with the tuning mode, so it only claims its own values."
+    },
+    "tuner_mode": {
+      "group": "tuner",
+      "scope": "feature",
+      "feature": "TUNER",
+      "kind": "enum",
+      "query": "TMAN?",
+      "prefix": "TMAN",
+      "exact_enum": true,
+      "values": ["AUTO", "MANUAL"],
+      "doc": "Tuner tuning mode (AUTO seeks and receives stereo, MANUAL is mono). Shares the TMAN prefix with the band."
+    },
+    "tuner_preset": {
+      "group": "tuner",
+      "scope": "feature",
+      "feature": "TUNER",
+      "kind": "integer",
+      "query": "TPAN?",
+      "prefix": "TPAN",
+      "width": 2,
+      "min": 1,
+      "max": 56,
+      "step": 1,
+      "doc": "Tuner preset number, two digits on the wire. Setting it recalls the stored station; the receiver reports 'TPANOFF' when tuned off-preset."
     }
   }
 }

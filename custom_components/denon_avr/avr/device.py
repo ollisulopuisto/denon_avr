@@ -426,8 +426,12 @@ class DenonAvrDevice:
         for zone in self._discovery.zones:
             if not zone.is_main:
                 add(f"{prefix}{zone.index}?")
-        # Read only audio information.
+        # Read only information. Fields gated on a function (the tuner) are only
+        # queried when the receiver advertises it.
         for spec in self._profile.readonly.values():
+            feature = spec.get("feature")
+            if feature and not self._discovery.supports(feature):
+                continue
             add(spec.get("query"))
         # Feature controls, only those the receiver advertises. Some controls
         # have several queries (a list query and a read query, e.g. channel

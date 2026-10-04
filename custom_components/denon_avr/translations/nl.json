@@ -57,6 +57,12 @@
       },
       "mode_info": {
         "name": "Modusinformatie"
+      },
+      "tuner_frequency": {
+        "name": "Tunerfrequentie"
+      },
+      "tuner_station_name": {
+        "name": "Tunerzender"
       }
     },
     "select": {
@@ -179,6 +185,12 @@
       },
       "eq_channel": {
         "name": "Kanaal"
+      },
+      "tuner_band": {
+        "name": "Tunerband"
+      },
+      "tuner_mode": {
+        "name": "Tunermodus"
       }
     },
     "switch": {
@@ -291,6 +303,9 @@
       },
       "enhancer": {
         "name": "Beeldverbetering"
+      },
+      "tuner_preset": {
+        "name": "Tunervoorkeuze"
       }
     },
     "button": {

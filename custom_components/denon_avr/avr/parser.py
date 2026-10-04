@@ -725,6 +725,13 @@ class TelnetParser:
             )
         elif kind == "trimmed":
             state.readonly[control_id] = remainder.rstrip() or None
+        elif kind == "hundredths":
+            # A fixed-width number in hundredths, e.g. a tuner frequency
+            # '010570' -> '105.70'. Kept as text: its unit depends on context.
+            token = remainder.strip()
+            if not token.isdigit():
+                return False
+            state.readonly[control_id] = f"{int(token) / 100:.2f}"
         else:
             state.readonly[control_id] = remainder.strip() or None
         return True
