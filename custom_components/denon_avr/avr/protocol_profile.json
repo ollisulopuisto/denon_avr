@@ -1023,6 +1023,26 @@
       "max": 56,
       "step": 1,
       "doc": "Tuner preset number, two digits on the wire. Setting it recalls the stored station; the receiver reports 'TPANOFF' when tuned off-preset."
+    },
+    "imax": {
+      "group": "surround",
+      "scope": "feature",
+      "feature": "IMAX",
+      "kind": "enum",
+      "query": "PSIMAX ?",
+      "prefix": "PSIMAX ",
+      "values": ["OFF", "ON", "AUTO"],
+      "doc": "IMAX processing. Option labels come from the receiver's IMAX list (Off/On/Auto), in this order."
+    },
+    "imax_audio_settings": {
+      "group": "surround",
+      "scope": "feature",
+      "feature": "IMAXAudioSettings",
+      "kind": "enum",
+      "query": "PSIMAXAUD ?",
+      "prefix": "PSIMAXAUD ",
+      "values": ["AUTO", "MANUAL"],
+      "doc": "IMAX audio settings: Auto, or Manual to use the IMAX filter and subwoofer settings."
     }
   }
 }

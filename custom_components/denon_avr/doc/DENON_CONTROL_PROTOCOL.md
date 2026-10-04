@@ -138,7 +138,7 @@ The receiver's `Audyssey` block nests exactly these; all implemented:
 | `PSHEQ` | Headphone EQ | `ON`/`OFF` | `[ ]` candidate |
 | `PSDACFIL` | DAC filter | `1`/`2` | `[ ]` (models with a DAC filter) |
 | `PSDIRAC` | Dirac Live filter slot | `1`/`2`/`3`/`OFF` | `[ ]` gate: (Dirac models; **not** on X3600H) |
-| `PSIMAXAUD` / `PSIMAX` / `PSIMAXHPF` / `PSIMAXLPF` / `PSIMAXSWM` / `PSIMAXSWO` | IMAX audio settings | various | `[ ]` gate: IMAXAudioSettings |
+| `PSIMAXAUD` / `PSIMAX` / `PSIMAXHPF` / `PSIMAXLPF` / `PSIMAXSWM` / `PSIMAXSWO` | IMAX audio settings | `PSIMAX OFF/ON/AUTO`, `PSIMAXAUD AUTO/MANUAL`; filters/sub: various | `[x]` imax (gate IMAX), imax_audio_settings (gate IMAXAudioSettings); `[ ]` HPF/LPF/sub (wire width unverified) |
 
 ## 9. Speaker & channel levels
 

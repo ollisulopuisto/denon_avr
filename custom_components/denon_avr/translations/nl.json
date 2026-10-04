@@ -191,6 +191,12 @@
       },
       "tuner_mode": {
         "name": "Tunermodus"
+      },
+      "imax": {
+        "name": "IMAX"
+      },
+      "imax_audio_settings": {
+        "name": "IMAX-audio-instellingen"
       }
     },
     "switch": {
