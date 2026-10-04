@@ -108,6 +108,12 @@ class ProtocolProfile:
         # ModelName patterns, matching the official denonavr library. Not a Gen
         # code map; see the section's own doc.
         self.receiver_type: dict[str, str] = raw.get("receiver_type", {})
+        # Momentary commands (buttons), each gated on an advertised function.
+        self.actions: dict[str, dict[str, Any]] = {
+            action_id: data
+            for action_id, data in raw.get("actions", {}).items()
+            if action_id != "doc"
+        }
         self.controls: dict[str, ControlSpec] = {
             control_id: ControlSpec(control_id, data)
             for control_id, data in raw.get("controls", {}).items()

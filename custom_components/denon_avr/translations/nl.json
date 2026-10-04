@@ -335,6 +335,30 @@
       },
       "eq_default": {
         "name": "Standaard"
+      },
+      "tuner_frequency_up": {
+        "name": "Tunerfrequentie omhoog"
+      },
+      "tuner_frequency_down": {
+        "name": "Tunerfrequentie omlaag"
+      },
+      "tuner_preset_up": {
+        "name": "Volgende tunervoorkeuze"
+      },
+      "tuner_preset_down": {
+        "name": "Vorige tunervoorkeuze"
+      },
+      "quick_select_1_save": {
+        "name": "Quick Select 1 opslaan"
+      },
+      "quick_select_2_save": {
+        "name": "Quick Select 2 opslaan"
+      },
+      "quick_select_3_save": {
+        "name": "Quick Select 3 opslaan"
+      },
+      "quick_select_4_save": {
+        "name": "Quick Select 4 opslaan"
       }
     }
   }

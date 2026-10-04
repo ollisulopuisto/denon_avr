@@ -335,6 +335,30 @@
       },
       "eq_default": {
         "name": "Default"
+      },
+      "tuner_frequency_up": {
+        "name": "Tuner Frequency Up"
+      },
+      "tuner_frequency_down": {
+        "name": "Tuner Frequency Down"
+      },
+      "tuner_preset_up": {
+        "name": "Tuner Preset Up"
+      },
+      "tuner_preset_down": {
+        "name": "Tuner Preset Down"
+      },
+      "quick_select_1_save": {
+        "name": "Save Quick Select 1"
+      },
+      "quick_select_2_save": {
+        "name": "Save Quick Select 2"
+      },
+      "quick_select_3_save": {
+        "name": "Save Quick Select 3"
+      },
+      "quick_select_4_save": {
+        "name": "Save Quick Select 4"
       }
     }
   }

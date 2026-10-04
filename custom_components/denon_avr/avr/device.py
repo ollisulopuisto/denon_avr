@@ -746,6 +746,23 @@ class DenonAvrDevice:
             await self._send(f"{spec.prefix}{wire}")
             await self._refresh_current_sound_modes()
 
+    def supported_actions(self) -> list[str]:
+        """Return the ids of the profile actions this receiver advertises."""
+
+        return [
+            action_id
+            for action_id, spec in self._profile.actions.items()
+            if self._discovery.supports(spec.get("feature", ""))
+        ]
+
+    async def async_run_action(self, action_id: str) -> None:
+        """Send a momentary profile action (a button), if the receiver has it."""
+
+        spec = self._profile.actions.get(action_id)
+        if spec is None or not self._discovery.supports(spec.get("feature", "")):
+            return
+        await self._send(spec["command"])
+
     async def async_set_control(self, control_id: str, value: object) -> None:
         """Set any profile driven feature control to a new value.
 

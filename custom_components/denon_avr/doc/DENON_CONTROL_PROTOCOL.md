@@ -80,7 +80,7 @@ legacy `MSPL2*`/`MSPL2X*`/`MSNEO:6*`/`MSDSD*`/`MSAUDYSSEY DSX`.
 |-------|----------|----------|
 | `MS` | Sound mode select / `?` | `[x]` sound_mode (+ media player), list discovered |
 | `MSALL ZONE STEREO` / `MNZST` | All-zone stereo | `[x]` all_zone_stereo (state derived from `MS`) |
-| `MSQUICK0..5`, `MSQUICK ?`, `MSQUICKn MEMORY` | Quick select recall/store | `[~]` quick_select (recall); store `[action]` |
+| `MSQUICK0..5`, `MSQUICK ?`, `MSQUICKn MEMORY` | Quick select recall/store | `[~]` quick_select (recall); `[x]` store: buttons quick_select_n_save (gate `Quick Selectn`) |
 | `MSSMG` | Sound-mode genre group (reported MOV/MUS/GAM/PUR) | `[~]` sound_mode_genre |
 
 ## 5. Surround parameters (`PS…`)
@@ -194,8 +194,9 @@ FM/HD tuner. `TFAN`/`TFHD` frequency, `TMAN`/`TMHD` band+mode, `TPAN`/`TPHD`
 presets. Values: `TFANUP/DOWN`, `TFAN<freq>`, `TMANFM/AM/AUTO/MANUAL`,
 `TPANUP/DOWN`, `TPAN01..`, `TPANMEM`. `[x]` gated on the `TUNER` function: frequency
 (`TFAN?`, sensor `tuner_frequency`), RDS name (`TFANNAME?`, sensor `tuner_station_name`), band and
-tuning mode (`TMAN`, selects `tuner_band`/`tuner_mode`, exact-enum on the shared prefix) and preset
-(`TPAN`, number `tuner_preset`). `[ ]` direct frequency entry, seek/step and `TPANMEM` (action-only).
+tuning mode (`TMAN`, selects `tuner_band`/`tuner_mode`, exact-enum on the shared prefix), preset
+(`TPAN`, number `tuner_preset`), and `TFANUP/DOWN`, `TPANUP/DOWN` as buttons (profile `actions`).
+`[ ]` direct frequency entry and `TPANMEM`.
 
 ## 13. Network & now-playing
 

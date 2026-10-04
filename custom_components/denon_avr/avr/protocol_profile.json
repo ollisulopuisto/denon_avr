@@ -1087,5 +1087,56 @@
       "labels": ["LFE+Main", "LFE"],
       "doc": "IMAX subwoofer output routing (Manual IMAX audio settings). Gated on IMAX rather than IMAXAudioSettings: option labels are looked up by the gate, and the two Auto/Manual labels of IMAXAudioSettings would otherwise replace these."
     }
+  },
+  "actions": {
+    "doc": "Momentary commands with no state, shown as buttons. Each is gated on the function the receiver advertises in Deviceinfo.xml; 'command' is sent verbatim.",
+    "tuner_frequency_up": {
+      "feature": "TUNER",
+      "command": "TFANUP",
+      "icon": "mdi:chevron-up",
+      "doc": "Step (manual mode) or seek (auto mode) up."
+    },
+    "tuner_frequency_down": {
+      "feature": "TUNER",
+      "command": "TFANDOWN",
+      "icon": "mdi:chevron-down",
+      "doc": "Step (manual mode) or seek (auto mode) down."
+    },
+    "tuner_preset_up": {
+      "feature": "TUNER",
+      "command": "TPANUP",
+      "icon": "mdi:skip-next",
+      "doc": "Next stored preset."
+    },
+    "tuner_preset_down": {
+      "feature": "TUNER",
+      "command": "TPANDOWN",
+      "icon": "mdi:skip-previous",
+      "doc": "Previous stored preset."
+    },
+    "quick_select_1_save": {
+      "feature": "Quick Select1",
+      "command": "MSQUICK1 MEMORY",
+      "icon": "mdi:content-save",
+      "doc": "Store the receiver's current state into Quick Select 1 (as holding the button on the remote)."
+    },
+    "quick_select_2_save": {
+      "feature": "Quick Select2",
+      "command": "MSQUICK2 MEMORY",
+      "icon": "mdi:content-save",
+      "doc": "Store the receiver's current state into Quick Select 2 (as holding the button on the remote)."
+    },
+    "quick_select_3_save": {
+      "feature": "Quick Select3",
+      "command": "MSQUICK3 MEMORY",
+      "icon": "mdi:content-save",
+      "doc": "Store the receiver's current state into Quick Select 3 (as holding the button on the remote)."
+    },
+    "quick_select_4_save": {
+      "feature": "Quick Select4",
+      "command": "MSQUICK4 MEMORY",
+      "icon": "mdi:content-save",
+      "doc": "Store the receiver's current state into Quick Select 4 (as holding the button on the remote)."
+    }
   }
 }
