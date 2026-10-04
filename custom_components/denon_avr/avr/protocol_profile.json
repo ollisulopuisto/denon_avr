@@ -1043,6 +1043,49 @@
       "prefix": "PSIMAXAUD ",
       "values": ["AUTO", "MANUAL"],
       "doc": "IMAX audio settings: Auto, or Manual to use the IMAX filter and subwoofer settings."
+    },
+    "imax_high_pass_filter": {
+      "group": "surround",
+      "scope": "feature",
+      "feature": "HighPassFilter",
+      "kind": "enum",
+      "query": "PSIMAXHPF ?",
+      "prefix": "PSIMAXHPF ",
+      "values": ["040", "060", "070", "080", "090", "100", "110", "120", "150", "180", "200", "250"],
+      "labels": ["40 Hz", "60 Hz", "70 Hz", "80 Hz", "90 Hz", "100 Hz", "110 Hz", "120 Hz", "150 Hz", "180 Hz", "200 Hz", "250 Hz"],
+      "doc": "IMAX high-pass filter (Manual IMAX audio settings). The receiver publishes the frequencies in its HighPassFilter block; three digits on the wire like SSLFL."
+    },
+    "imax_low_pass_filter": {
+      "group": "surround",
+      "scope": "feature",
+      "feature": "LowPassFilter",
+      "kind": "enum",
+      "query": "PSIMAXLPF ?",
+      "prefix": "PSIMAXLPF ",
+      "values": ["070", "080", "090", "100", "110", "120", "150", "180", "200", "250"],
+      "labels": ["70 Hz", "80 Hz", "90 Hz", "100 Hz", "110 Hz", "120 Hz", "150 Hz", "180 Hz", "200 Hz", "250 Hz"],
+      "doc": "IMAX low-pass filter (Manual IMAX audio settings), from the receiver's LowPassFilter block."
+    },
+    "imax_subwoofer": {
+      "group": "surround",
+      "scope": "feature",
+      "feature": "SubwooferMode",
+      "kind": "enum",
+      "query": "PSIMAXSWM ?",
+      "prefix": "PSIMAXSWM ",
+      "values": ["OFF", "ON"],
+      "doc": "IMAX subwoofer on/off (Manual IMAX audio settings). Labels come from the receiver's SubwooferMode list (Off/On)."
+    },
+    "imax_subwoofer_output": {
+      "group": "surround",
+      "scope": "feature",
+      "feature": "IMAXAudioSettings",
+      "kind": "enum",
+      "query": "PSIMAXSWO ?",
+      "prefix": "PSIMAXSWO ",
+      "values": ["L+M", "LFE"],
+      "labels": ["LFE+Main", "LFE"],
+      "doc": "IMAX subwoofer output routing (Manual IMAX audio settings)."
     }
   }
 }

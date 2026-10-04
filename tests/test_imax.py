@@ -49,3 +49,24 @@ def test_option_labels_line_up_with_the_wire_values(x3600h_deviceinfo: str) -> N
         spec = profile.control(control_id)
         assert discovery.option_labels[spec.feature] == labels
         assert [value.lower() for value in spec.values] == [label.lower() for label in labels]
+
+
+def test_imax_filters_and_subwoofer(parser: TelnetParser) -> None:
+    state = _feed(parser, "PSIMAXHPF 080", "PSIMAXLPF 120", "PSIMAXSWM ON", "PSIMAXSWO L+M")
+    assert state.values["imax_high_pass_filter"] == "080"
+    assert state.values["imax_low_pass_filter"] == "120"
+    assert state.values["imax_subwoofer"] == "ON"
+    assert state.values["imax_subwoofer_output"] == "L+M"
+    # The longer filter prefixes never leak into the IMAX mode select.
+    assert "imax" not in state.values
+
+
+def test_imax_filter_values_match_what_the_receiver_publishes(x3600h_deviceinfo: str) -> None:
+    import xml.etree.ElementTree as ET
+
+    profile = load_profile()
+    root = ET.fromstring(x3600h_deviceinfo)
+    for control_id, block in (("imax_high_pass_filter", "HighPassFilter"), ("imax_low_pass_filter", "LowPassFilter")):
+        published = [int(v.text) for v in root.find(f".//{block}").findall("Value")]
+        assert [int(v) for v in profile.control(control_id).values] == published
+        assert profile.control(control_id).feature == block

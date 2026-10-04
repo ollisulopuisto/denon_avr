@@ -197,6 +197,18 @@
       },
       "imax_audio_settings": {
         "name": "IMAX Audio Settings"
+      },
+      "imax_high_pass_filter": {
+        "name": "IMAX High Pass Filter"
+      },
+      "imax_low_pass_filter": {
+        "name": "IMAX Low Pass Filter"
+      },
+      "imax_subwoofer": {
+        "name": "IMAX Subwoofer"
+      },
+      "imax_subwoofer_output": {
+        "name": "IMAX Subwoofer Output"
       }
     },
     "switch": {
