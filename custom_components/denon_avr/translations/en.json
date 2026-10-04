@@ -212,6 +212,9 @@
       },
       "auto_standby": {
         "name": "Auto Standby"
+      },
+      "power_on_volume_mode": {
+        "name": "Power-On Volume"
       }
     },
     "switch": {
@@ -327,6 +330,9 @@
       },
       "tuner_preset": {
         "name": "Tuner Preset"
+      },
+      "power_on_volume_level": {
+        "name": "Power-On Volume Level"
       }
     },
     "button": {

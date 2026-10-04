@@ -304,7 +304,7 @@ class TelnetParser:
         # first so that specific tokens win over shorter ones.
         # Feature controls decode generically from their prefix. Core enum/on-off
         # settings that have no FuncName gate (volume scale/limit, muting level,
-        # all-zone stereo, subwoofer mode) decode the same way, so they join the
+        # all-zone stereo, subwoofer mode, the power-on level) decode the same way, so they join the
         # generic matcher instead of each needing a bespoke dispatch branch. The
         # overloaded core controls (power/volume/mute/source/sound mode) keep
         # their explicit handling and are excluded here (kind or zone bound).
@@ -318,7 +318,7 @@ class TelnetParser:
                     spec.scope == "feature"
                     or (
                         spec.scope == "core"
-                        and spec.kind in ("enum", "onoff")
+                        and spec.kind in ("enum", "onoff", "integer")
                         and not spec.zone
                     )
                 )

@@ -212,6 +212,9 @@
       },
       "auto_standby": {
         "name": "Automatische stand-by"
+      },
+      "power_on_volume_mode": {
+        "name": "Volume bij inschakelen"
       }
     },
     "switch": {
@@ -327,6 +330,9 @@
       },
       "tuner_preset": {
         "name": "Tunervoorkeuze"
+      },
+      "power_on_volume_level": {
+        "name": "Volumeniveau bij inschakelen"
       }
     },
     "button": {

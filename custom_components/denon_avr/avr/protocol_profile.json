@@ -1096,6 +1096,29 @@
       "values": ["15M", "30M", "60M", "OFF"],
       "labels": ["15 min", "30 min", "60 min", "Off"],
       "doc": "Main zone auto-standby. A core setting with no FuncName gate (every network receiver has it); decoded by the generic matcher."
+    },
+    "power_on_volume_mode": {
+      "group": "system",
+      "scope": "core",
+      "kind": "enum",
+      "query": "SSVCTZMA ?",
+      "prefix": "SSVCTZMAPON ",
+      "exact_enum": true,
+      "values": ["LAST", "MUT"],
+      "labels": ["Last", "Mute"],
+      "doc": "Power-on volume when it is not a fixed level: the last level, or muted. Shares SSVCTZMAPON with power_on_volume_level; exact-enum so a number goes to the level control."
+    },
+    "power_on_volume_level": {
+      "group": "system",
+      "scope": "core",
+      "kind": "integer",
+      "query": "SSVCTZMA ?",
+      "prefix": "SSVCTZMAPON ",
+      "width": 3,
+      "min": 0,
+      "max": 98,
+      "step": 1,
+      "doc": "Fixed power-on volume on the absolute 0-98 scale (three digits, like the volume limit). Setting it switches the receiver from Last/Mute to this level."
     }
   },
   "actions": {
