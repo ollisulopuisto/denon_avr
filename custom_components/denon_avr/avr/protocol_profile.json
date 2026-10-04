@@ -1079,13 +1079,13 @@
     "imax_subwoofer_output": {
       "group": "surround",
       "scope": "feature",
-      "feature": "IMAXAudioSettings",
+      "feature": "IMAX",
       "kind": "enum",
       "query": "PSIMAXSWO ?",
       "prefix": "PSIMAXSWO ",
       "values": ["L+M", "LFE"],
       "labels": ["LFE+Main", "LFE"],
-      "doc": "IMAX subwoofer output routing (Manual IMAX audio settings)."
+      "doc": "IMAX subwoofer output routing (Manual IMAX audio settings). Gated on IMAX rather than IMAXAudioSettings: option labels are looked up by the gate, and the two Auto/Manual labels of IMAXAudioSettings would otherwise replace these."
     }
   }
 }

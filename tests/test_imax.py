@@ -70,3 +70,17 @@ def test_imax_filter_values_match_what_the_receiver_publishes(x3600h_deviceinfo:
         published = [int(v.text) for v in root.find(f".//{block}").findall("Value")]
         assert [int(v) for v in profile.control(control_id).values] == published
         assert profile.control(control_id).feature == block
+
+
+def test_select_options_on_an_x3600h(x3600h_deviceinfo: str, integration_helpers) -> None:
+    profile = load_profile()
+    enum_features = {s.feature for s in profile.controls.values() if s.kind == "enum" and s.feature}
+    discovery = parse_device_info(x3600h_deviceinfo, enum_features, enum_features)
+    expected = {
+        "imax": ["Off", "On", "Auto"],
+        "imax_subwoofer": ["Off", "On"],
+        "imax_subwoofer_output": ["LFE+Main", "LFE"],
+        "imax_high_pass_filter": ["40 Hz", "60 Hz", "70 Hz", "80 Hz", "90 Hz", "100 Hz", "110 Hz", "120 Hz", "150 Hz", "180 Hz", "200 Hz", "250 Hz"],
+    }
+    for control_id, options in expected.items():
+        assert integration_helpers.enum_options(discovery, profile.control(control_id))[0] == options
