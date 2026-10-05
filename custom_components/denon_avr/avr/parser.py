@@ -522,7 +522,10 @@ class TelnetParser:
         digits, name = match.group(1), match.group(2).strip()
         if not name:
             return False
-        self._opsml_pending.append(name)
+        # The receiver also pushes single OPSML lines on a mode change, outside a
+        # requested list; keep each name once so they cannot pile up as duplicates.
+        if name not in self._opsml_pending:
+            self._opsml_pending.append(name)
         # The trailing digit is the "currently selected" flag; this is the mode
         # the user selected, which can differ from the resolved MS mode.
         if digits and digits[-1] == "1":
