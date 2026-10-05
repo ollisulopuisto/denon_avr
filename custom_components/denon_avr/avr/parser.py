@@ -318,7 +318,7 @@ class TelnetParser:
                     spec.scope == "feature"
                     or (
                         spec.scope == "core"
-                        and spec.kind in ("enum", "onoff", "integer")
+                        and spec.kind in ("enum", "onoff", "integer", "half_step")
                         and not spec.zone
                     )
                 )
@@ -748,6 +748,13 @@ class TelnetParser:
             if value is None:
                 return False
             state.values[spec.id] = value - self._profile.level_reference
+        elif kind == "half_step":
+            # An absolute value in the half-step format ('30', '305' = 30.5),
+            # with no reference offset (unlike 'level').
+            value = decode_half_step(remainder)
+            if value is None:
+                return False
+            state.values[spec.id] = value
         elif kind == "centered":
             value = decode_centered(remainder, int(spec.get("center", 0)))
             if value is None:

@@ -1111,14 +1111,13 @@
     "power_on_volume_level": {
       "group": "system",
       "scope": "core",
-      "kind": "integer",
+      "kind": "half_step",
       "query": "SSVCTZMA ?",
       "prefix": "SSVCTZMAPON ",
-      "width": 3,
       "min": 0,
       "max": 98,
-      "step": 1,
-      "doc": "Fixed power-on volume on the absolute 0-98 scale (three digits, like the volume limit). Setting it switches the receiver from Last/Mute to this level."
+      "step": 0.5,
+      "doc": "Fixed power-on volume on the absolute 0-98 scale, in the master volume's half-step format ('30', '305' = 30.5; measured on an AVR-X3600H, which reads '031' as 3). Setting it switches the receiver from Last/Mute to this level."
     }
   },
   "actions": {

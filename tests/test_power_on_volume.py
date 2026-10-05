@@ -2,8 +2,8 @@
 
 It is split into two controls on the same prefix: a select for the Last/Mute
 modes (exact-enum, so it never claims a number) and a number for a fixed level
-on the receiver's absolute 0-98 scale, three digits on the wire like the
-volume limit (SSVCTZMALIM 060).
+on the receiver's absolute 0-98 scale. The level uses the half-step format of the
+master volume: an AVR-X3600H reports 'SSVCTZMAPON 30', and took '031' as 3.
 """
 
 from __future__ import annotations
@@ -34,15 +34,17 @@ def test_mode(parser: TelnetParser, token: str) -> None:
     assert "power_on_volume_level" not in state.values
 
 
-def test_fixed_level(parser: TelnetParser) -> None:
-    state = _feed(parser, "SSVCTZMAPON 040")
-    assert state.values["power_on_volume_level"] == 40
+@pytest.mark.parametrize(("line", "expected"), [("SSVCTZMAPON 30", 30.0), ("SSVCTZMAPON 305", 30.5), ("SSVCTZMAPON 05", 5.0)])
+def test_fixed_level(parser: TelnetParser, line: str, expected: float) -> None:
+    state = _feed(parser, line)
+    assert state.values["power_on_volume_level"] == expected
     assert "power_on_volume_mode" not in state.values
 
 
-def test_level_is_sent_as_three_digits() -> None:
+@pytest.mark.parametrize(("value", "wire"), [(30, "SSVCTZMAPON 30"), (30.5, "SSVCTZMAPON 305"), (5, "SSVCTZMAPON 05")])
+def test_level_is_sent_in_half_steps(value: float, wire: str) -> None:
     spec = load_profile().control("power_on_volume_level")
-    assert spec.prefix + DenonAvrDevice._encode_control_value(None, spec, 40) == "SSVCTZMAPON 040"
+    assert spec.prefix + DenonAvrDevice._encode_control_value(None, spec, value) == wire
 
 
 def test_does_not_disturb_the_volume_limit(parser: TelnetParser) -> None:

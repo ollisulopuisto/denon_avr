@@ -50,7 +50,7 @@ profile for scaling, e.g. master volume `MV` uses 2-digit + optional half-step).
 | `SSVCTZMADIS` | Volume display scale | `REL`, `ABS` | `[x]` volume_scale |
 | `SSVCTZMALIM` | Volume limit | `OFF`,`060`,`070`,`080` | `[x]` volume_limit |
 | `SSVCTZMAMLV` | Muting level | `MUT`,`040` | `[x]` muting_level |
-| `SSVCTZMAPON` | Power-on level | `LAST`,`MUT`,`nnn` | `[x]` power_on_volume_mode (LAST/MUT, exact-enum) + power_on_volume_level (nnn) |
+| `SSVCTZMAPON` | Power-on level | `LAST`,`MUT`,`nnn` | `[x]` power_on_volume_mode (LAST/MUT, exact-enum) + power_on_volume_level (half-step `30`/`305`, measured) |
 
 ## 3. Source & input
 

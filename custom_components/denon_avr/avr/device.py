@@ -850,6 +850,8 @@ class DenonAvrDevice:
         if kind == "level":
             raw = self._profile.level_reference + float(value)  # type: ignore[arg-type]
             return encode_half_step(raw)
+        if kind == "half_step":
+            return encode_half_step(float(value))  # type: ignore[arg-type]
         if kind == "centered":
             # Fixed-width integer offset around a centre (picture controls).
             width = int(spec.get("width", 3))

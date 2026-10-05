@@ -26,7 +26,7 @@ from .entity import DenonAvrEntity
 from .helpers import control_sub_device
 
 # The control kinds that map to a number entity.
-_NUMBER_KINDS = {"level", "signed_int", "minutes", "integer", "centered"}
+_NUMBER_KINDS = {"level", "signed_int", "minutes", "integer", "centered", "half_step"}
 
 # Map the profile's plain wire unit tokens to the canonical Home Assistant unit
 # constants (the profile stays HA-independent; this HA layer does the mapping).
@@ -96,8 +96,9 @@ class DenonAvrNumber(DenonAvrEntity, NumberEntity):
             # canonical HA unit constant where known.
             unit = spec.get("unit")
             self._attr_native_unit_of_measurement = _UNIT_TOKENS.get(unit, unit)
-        elif spec.kind == "centered":
-            # Picture controls are a unitless offset (e.g. contrast -50..+50).
+        elif spec.kind in ("centered", "half_step"):
+            # Picture controls are a unitless offset (e.g. contrast -50..+50);
+            # a half-step value is on the receiver's own absolute 0-98 scale.
             self._attr_native_unit_of_measurement = None
         else:
             self._attr_native_unit_of_measurement = UnitOfSoundPressure.DECIBEL
