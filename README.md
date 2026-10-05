@@ -11,7 +11,7 @@
 > | [`pr/test-harness`](https://github.com/ollisulopuisto/denon_avr/tree/pr/test-harness) | A pytest harness for the protocol library (no Home Assistant needed: `pip install -r requirements_test.txt && pytest tests`). |
 > | [`combined`](https://github.com/ollisulopuisto/denon_avr/tree/combined) | All of the above together. |
 >
-> Not verified on the receiver yet: IMAX subwoofer output and the tuner station name. To try it, copy `custom_components/denon_avr` from the [`combined`](https://github.com/ollisulopuisto/denon_avr/tree/combined) branch into your Home Assistant `custom_components` folder and restart. This `main` branch is otherwise the same as upstream.
+> Not verified on the receiver yet: IMAX subwoofer output and the tuner station name. To try it, copy `custom_components/denon_avr` from the [`combined`](https://github.com/ollisulopuisto/denon_avr/tree/combined) branch into your Home Assistant `custom_components` folder and restart. This `main` branch is otherwise the same as upstream. A daily GitHub Action merges upstream into every branch above, runs the tests and pushes only what merges cleanly and passes; anything else is reported as an issue in this fork.
 
 [![GitHub Release][releases-shield]][releases]
 [![Maintainer][maintainer-shield]][maintainer]
