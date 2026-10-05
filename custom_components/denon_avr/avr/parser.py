@@ -339,10 +339,15 @@ class TelnetParser:
         if not line:
             return False
         try:
-            return self._dispatch(line, state)
+            changed = self._dispatch(line, state)
         except (ValueError, IndexError) as err:
             _LOGGER.debug("Ignoring unparsable line %r: %s", line, err)
             return False
+        if not changed:
+            # Not applied (unrecognised, or no value in it): log it so a reply format the
+            # profile does not match yet can be seen with debug logging on.
+            _LOGGER.debug("Line not applied (unrecognised or no value): %r", line)
+        return changed
 
     # Dispatch order matters because several prefixes overlap. The core zone
     # controls and the overloaded/list style responses are handled explicitly;
