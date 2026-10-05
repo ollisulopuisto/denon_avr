@@ -1,5 +1,17 @@
 # Denon AVR
 
+> **About this fork.** This is a fork of [LaserGuruGuy/denon_avr](https://github.com/LaserGuruGuy/denon_avr); all credit for the integration goes there. The fork adds a few things, each tested on a Denon AVR-X3600H. They are offered upstream, but the repository doesn't accept outside pull requests, so they live here:
+>
+> | Branch | What it adds |
+> |---|---|
+> | [`pr/sound-modes`](https://github.com/ollisulopuisto/denon_avr/tree/pr/sound-modes) | Sound modes are selected by their entry in the receiver's own list over HTTP (`AppCommand0300.xml`), with the telnet token as fallback. Fixes modes whose telnet token is unknown or doesn't exist (DTS Virtual:X on the X3600H), and duplicate entries in the sound mode select. |
+> | [`pr/new-controls`](https://github.com/ollisulopuisto/denon_avr/tree/pr/new-controls) | Tuner (frequency, station name, band, tuning mode, preset), IMAX (mode, audio settings, filters, subwoofer), buttons for tuner step/preset and saving Quick Select 1–4, auto-standby, and power-on volume (Last / Mute / level). Each appears only if the receiver advertises it. |
+> | [`pr/log-unhandled`](https://github.com/ollisulopuisto/denon_avr/tree/pr/log-unhandled) | Telnet replies the parser doesn't apply are logged at debug level. |
+> | [`pr/test-harness`](https://github.com/ollisulopuisto/denon_avr/tree/pr/test-harness) | A pytest harness for the protocol library (no Home Assistant needed: `pip install -r requirements_test.txt && pytest tests`). |
+> | [`combined`](https://github.com/ollisulopuisto/denon_avr/tree/combined) | All of the above together. |
+>
+> Not verified on the receiver yet: IMAX subwoofer output and the tuner station name. To try it, copy `custom_components/denon_avr` from the [`combined`](https://github.com/ollisulopuisto/denon_avr/tree/combined) branch into your Home Assistant `custom_components` folder and restart. This `main` branch is otherwise the same as upstream.
+
 [![GitHub Release][releases-shield]][releases]
 [![Maintainer][maintainer-shield]][maintainer]
 [![HACS Custom][hacs-shield]][hacs-url]
