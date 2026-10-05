@@ -1,12 +1,14 @@
 """The goform HTTP transport (port 8080) for the Denon AVR client library.
 
-The goform HTTP API is used for two things only:
+The goform HTTP API is used for three things:
 
 * Discovery: fetch the Deviceinfo XML once at setup so the receiver can describe
   its identity and capabilities.
 * Reconciliation: poll the compact StatusLite endpoints so the integration can
   confirm the receiver is reachable and recover core state if the telnet push
   channel is temporarily down.
+* Sound mode selection by list entry (AppCommand0300.xml), for modes whose
+  telnet token is unknown or does not exist.
 
 The heavy lifting (control and real time updates) is done over telnet; this is
 the stateless safety net. This module owns its own port and discovery path; no
@@ -26,6 +28,7 @@ _LOGGER = logging.getLogger(__name__)
 
 _PORT = 8080
 _DEVICEINFO_PATH = "/goform/Deviceinfo.xml"
+_APP_COMMAND_PATH = "/goform/AppCommand0300.xml"
 
 
 class GoformClient:
@@ -51,6 +54,22 @@ class GoformClient:
         if text is None:
             return None
         return self._parse_status(text)
+
+    async def async_app_command(self, body: str) -> str | None:
+        """POST an XML command to the AppCommand0300 API; return the reply or None."""
+
+        url = f"{self._base}{_APP_COMMAND_PATH}"
+        try:
+            timeout = aiohttp.ClientTimeout(total=HTTP_TIMEOUT)
+            async with self._session.post(
+                url, data=body, headers={"Content-Type": "text/xml"}, timeout=timeout
+            ) as response:
+                if response.status != 200:
+                    return None
+                return await response.text()
+        except (aiohttp.ClientError, TimeoutError) as err:
+            _LOGGER.debug("AppCommand request to %s failed: %s", url, err)
+            return None
 
     async def _get(self, path: str) -> str | None:
         """Perform a GET against the goform base and return the body text."""

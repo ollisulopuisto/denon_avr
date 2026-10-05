@@ -20,6 +20,7 @@ from collections.abc import Callable
 
 import aiohttp
 
+from . import sound_mode_list
 from .codec import encode_centered, encode_half_step
 from .models import AvrState, Discovery, NowPlaying
 from .parser import TelnetParser, parse_device_info, parse_upnp_description
@@ -620,17 +621,38 @@ class DenonAvrDevice:
     async def async_select_sound_mode(self, name: str) -> None:
         """Select a surround / sound mode by its display name.
 
-        The wire token is often not the plain display name (for example
-        'Dolby Audio - Dolby Surround' is sent as 'DOLBY AUDIO-DSUR'). Use the
-        deterministic profile override when the token differs, otherwise the
-        upper cased display name, which works for the simple modes.
+        First by its entry in the receiver's current mode list over HTTP, which
+        needs no wire token. Otherwise by MS token: the wire token is often not
+        the plain display name (for example 'Dolby Audio - Dolby Surround' is
+        sent as 'DOLBY AUDIO-DSUR'), so use the deterministic profile override
+        when the token differs, else the upper cased display name.
         """
 
         spec = self._profile.control("sound_mode")
         if spec is None:
             return
-        await self._send(f"{spec.prefix}{self._resolve_sound_mode_wire(name)}")
+        if not await self._select_sound_mode_by_list(name):
+            await self._send(f"{spec.prefix}{self._resolve_sound_mode_wire(name)}")
         await self._refresh_current_sound_modes()
+
+    async def _select_sound_mode_by_list(self, name: str) -> bool:
+        """Select a mode by its entry in the receiver's current list (HTTP).
+
+        Returns False, so the caller falls back to the MS telnet token, when the
+        API is unavailable, the mode is not in the current genre's list, or the
+        receiver does not acknowledge the command.
+        """
+
+        genre, entries = sound_mode_list.parse_list(
+            await self._goform.async_app_command(sound_mode_list.get_request())
+        )
+        wanted = name.casefold()
+        number = next((n for n, label, _ in entries if label.casefold() == wanted), None)
+        if genre is None or number is None:
+            return False
+        return sound_mode_list.is_ok(
+            await self._goform.async_app_command(sound_mode_list.set_request(genre, number))
+        )
 
     def _resolve_sound_mode_wire(self, name: str) -> str:
         """Resolve the MS wire token for a sound mode display name.
