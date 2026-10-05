@@ -16,7 +16,12 @@ from .avr import graphic_eq
 from .avr.profile import ControlSpec
 from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
 from .entity import DenonAvrEntity
-from .helpers import control_sub_device, enum_options, group_name
+from .helpers import (
+    control_sub_device,
+    enum_options,
+    group_name,
+    speaker_size_options,
+)
 
 
 async def async_setup_entry(
@@ -346,7 +351,7 @@ class DenonAvrSpeakerSize(DenonAvrEntity, SelectEntity):
         )
         self._group = group
         self._attr_entity_registry_enabled_default = enabled
-        sizes = coordinator.device.profile.speakers.get("sizes", {}).get("options", {})
+        sizes = speaker_size_options(coordinator.device.profile, group)
         self._token_to_label = dict(sizes)
         self._label_to_token = {label: token for token, label in sizes.items()}
         self._attr_options = list(sizes.values())

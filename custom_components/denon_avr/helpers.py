@@ -115,3 +115,19 @@ def enum_options(discovery: Discovery, spec: ControlSpec) -> tuple[
     label_to_value = {label: value for label, value in pairs}
     value_to_label = {value: label for label, value in pairs}
     return options, label_to_value, value_to_label
+
+
+def speaker_size_options(profile, group: str) -> dict[str, str]:
+    """Return the size options (wire token -> label) for a speaker group.
+
+    Large/Small come from the profile. Groups listed in the profile's
+    ``absent_selectable`` also offer the absent token as "None" (for example
+    surround speakers set to none, so Dolby Surround upmixes to the front
+    channels only).
+    """
+
+    speakers = profile.speakers
+    options = dict(speakers.get("sizes", {}).get("options", {}))
+    if group in speakers.get("absent_selectable", []):
+        options[speakers.get("absent_token", "NON")] = "None"
+    return options

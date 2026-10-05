@@ -22,3 +22,22 @@ def x3600h_deviceinfo() -> str:
     """Deviceinfo.xml read from a real AVR-X3600H (MAC address anonymised)."""
 
     return (FIXTURES / "deviceinfo_avr_x3600h.xml").read_text(encoding="utf-8")
+
+
+@pytest.fixture
+def integration_helpers():
+    """The integration's helpers module, loaded without Home Assistant.
+
+    helpers.py only imports from the avr package, so it is loaded under a stand-in
+    package name that does not run the integration's __init__ (which needs HA).
+    """
+
+    import importlib
+    import types
+
+    name = "denon_avr_standin"
+    if name not in sys.modules:
+        package = types.ModuleType(name)
+        package.__path__ = [str(ROOT / "custom_components" / "denon_avr")]
+        sys.modules[name] = package
+    return importlib.import_module(f"{name}.helpers")
