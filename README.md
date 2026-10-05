@@ -6,6 +6,7 @@
 > |---|---|
 > | [`pr/sound-modes`](https://github.com/ollisulopuisto/denon_avr/tree/pr/sound-modes) | Sound modes are selected by their entry in the receiver's own list over HTTP (`AppCommand0300.xml`), with the telnet token as fallback. Fixes modes whose telnet token is unknown or doesn't exist (DTS Virtual:X on the X3600H), and duplicate entries in the sound mode select. |
 > | [`pr/new-controls`](https://github.com/ollisulopuisto/denon_avr/tree/pr/new-controls) | Tuner (frequency, station name, band, tuning mode, preset), IMAX (mode, audio settings, filters, subwoofer), buttons for tuner step/preset and saving Quick Select 1–4, auto-standby, and power-on volume (Last / Mute / level). Each appears only if the receiver advertises it. |
+> | [`pr/x3600h-tokens`](https://github.com/ollisulopuisto/denon_avr/tree/pr/x3600h-tokens) | Telnet tokens the AVR-X3600H actually accepts for Dolby Surround, DTS Neural:X and Multi In + DSur (used as fallback), and a "None" option for the surround speaker size so Dolby Surround can play on the front channels only. |
 > | [`pr/log-unhandled`](https://github.com/ollisulopuisto/denon_avr/tree/pr/log-unhandled) | Telnet replies the parser doesn't apply are logged at debug level. |
 > | [`pr/test-harness`](https://github.com/ollisulopuisto/denon_avr/tree/pr/test-harness) | A pytest harness for the protocol library (no Home Assistant needed: `pip install -r requirements_test.txt && pytest tests`). |
 > | [`combined`](https://github.com/ollisulopuisto/denon_avr/tree/combined) | All of the above together. |
