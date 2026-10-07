@@ -157,6 +157,15 @@ class DenonAvrDevice:
             "absolute_max", self._profile.volume_max_fallback
         )
 
+    # The 0..1 volume level is raw / 100, like the Home Assistant core Denon integration ((dB + 80) / 100). The
+    # receiver limit (MVMAX) caps what can be set but is not the scale, so a level reads the same on every setup.
+    VOLUME_LEVEL_SCALE = 100.0
+
+    def volume_raw_to_level(self, raw: float) -> float:
+        """Convert a raw volume (0 dB = 80) to a 0..1 level."""
+
+        return max(0.0, min(1.0, raw / self.VOLUME_LEVEL_SCALE))
+
     def volume_effective_max(self, zone_id: str = "main") -> float:
         """The highest reachable raw volume: the receiver limit (MVMAX) or scale max."""
 
@@ -855,11 +864,10 @@ class DenonAvrDevice:
     # Encoding helpers -----------------------------------------------------
 
     def _level_to_raw(self, zone_id: str, level: float) -> float:
-        """Convert a 0..1 level to the raw volume scale using the reported max."""
+        """Convert a 0..1 level to the raw volume scale (the receiver limit is applied when sending)."""
 
         level = max(0.0, min(1.0, level))
-        ceiling = self.volume_effective_max(zone_id)
-        return round(level * ceiling * 2) / 2
+        return round(level * self.VOLUME_LEVEL_SCALE * 2) / 2
 
     def _encode_control_value(self, spec, value: object) -> str | None:
         """Encode a Python value into the wire argument for a control."""
