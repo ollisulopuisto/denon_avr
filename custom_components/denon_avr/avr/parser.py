@@ -177,9 +177,21 @@ def parse_device_info(
     # feature the profile knows, locate the matching block and read what the
     # receiver publishes: the title (first DispName), the ordered option labels
     # (for enum controls) and the numeric range (for level controls).
+    # Performance optimization: Single-pass index feature elements in the XML
+    # tree rather than issuing repeated root.find(f".//{feature}") XPath scans
+    # for each of the ~38 feature names across 2,000+ XML nodes (O(M * N) -> O(N)).
+    target_features = set(feature_names or ())
+    feature_blocks: dict[str, ET.Element] = {}
+    if target_features:
+        for node in root.iter():
+            if node.tag in target_features and node.tag not in feature_blocks:
+                feature_blocks[node.tag] = node
+                if len(feature_blocks) == len(target_features):
+                    break
+
     enum_features = enum_features or set()
     for feature in feature_names or ():
-        block = root.find(f".//{feature}")
+        block = feature_blocks.get(feature)
         if block is None:
             continue
         labels = [
