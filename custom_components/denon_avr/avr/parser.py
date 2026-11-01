@@ -30,6 +30,10 @@ from .profile import ProtocolProfile
 
 _LOGGER = logging.getLogger(__name__)
 
+# Pre-compiled regex for parsing sound mode list entries: digits (flags/indices)
+# followed by the sound mode display name (e.g. '011Direct' or 'MOV071Virtual').
+_SOUND_MODE_RE = re.compile(r"^(\d+)(.*)$")
+
 
 def _format_mac(raw: str | None) -> str | None:
     """Format a bare MAC such as '0005CDBDFD0C' as '00:05:cd:bd:fd:0c'."""
@@ -331,6 +335,19 @@ class TelnetParser:
             key=lambda item: len(item[1].get("prefix", "")),
             reverse=True,
         )
+        # Performance optimization: Index matchers by their 2-character prefix
+        # for O(1) candidate lookup in _dispatch. Rather than linearly testing
+        # up to 54 string prefixes for every incoming telnet line, we narrow the
+        # search down to only candidates matching the line's first 2 characters,
+        # preserving the longest-prefix-first ordering within each bucket.
+        self._feature_buckets: dict[str, list] = {}
+        for prefix, spec in self._feature_matchers:
+            self._feature_buckets.setdefault(prefix[:2], []).append((prefix, spec))
+        self._readonly_buckets: dict[str, list] = {}
+        for control_id, spec in self._readonly_matchers:
+            prefix = spec.get("prefix", "")
+            if prefix:
+                self._readonly_buckets.setdefault(prefix[:2], []).append((control_id, spec))
 
     def feed(self, line: str, state: AvrState) -> bool:
         """Apply a single telnet line to the state. Return True if it changed."""
@@ -414,14 +431,15 @@ class TelnetParser:
         if line.startswith("OPSML"):
             return self._set_current_sound_mode(line[5:], state)
 
-        # Read only audio information.
-        for control_id, spec in self._readonly_matchers:
+        prefix_2 = line[:2]
+        # Read only audio information (bucketed by 2-char prefix for fast lookup).
+        for control_id, spec in self._readonly_buckets.get(prefix_2, ()):
             prefix = spec.get("prefix", "")
             if prefix and line.startswith(prefix):
                 return self._set_readonly(control_id, spec, line[len(prefix):], state)
 
-        # Generic feature controls.
-        for prefix, spec in self._feature_matchers:
+        # Generic feature controls (bucketed by 2-char prefix for fast lookup).
+        for prefix, spec in self._feature_buckets.get(prefix_2, ()):
             if line.startswith(prefix):
                 remainder = line[len(prefix):]
                 # A control with a short, overloaded prefix (e.g. picture mode
@@ -488,7 +506,7 @@ class TelnetParser:
         if not remainder:
             return False
         genre = remainder[:3]
-        match = re.match(r"^(\d+)(.*)$", remainder[3:])
+        match = _SOUND_MODE_RE.match(remainder[3:])
         if not match:
             return False
         name = match.group(2).strip()
@@ -516,7 +534,7 @@ class TelnetParser:
             self._discovery.current_sound_modes = list(self._opsml_pending)
             self._opsml_pending = []
             return True
-        match = re.match(r"^(\d+)(.*)$", remainder)
+        match = _SOUND_MODE_RE.match(remainder)
         if not match:
             return False
         digits, name = match.group(1), match.group(2).strip()
