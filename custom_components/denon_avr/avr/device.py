@@ -105,6 +105,14 @@ class DenonAvrDevice:
         # debounce. Coalescing avoids a query storm when several triggers arrive
         # at once. A group is scheduled at most once until its re-query fires.
         self._refresh_groups = self._profile.refresh_groups
+        # Performance optimization: Precompute immutable (group_id, prefixes_tuple)
+        # pairs once at initialization. Avoids repeatedly calling .items(), .get("on"),
+        # and allocating a new tuple(on) on every single incoming telnet line.
+        self._refresh_triggers: tuple[tuple[str, tuple[str, ...]], ...] = tuple(
+            (group_id, tuple(group["on"]))
+            for group_id, group in self._refresh_groups.items()
+            if group.get("on")
+        )
         self._refresh_scheduled: set[str] = set()
         self._available = False
         # Deviceinfo derived source list, used only if telnet introspection
@@ -382,9 +390,9 @@ class DenonAvrDevice:
         # re-push on every change in sync - the signal dependent sound mode
         # lists on an audio format change, and the audio information and
         # channel/speaker layout on a sound mode (MS) or source (SI) change.
-        for group_id, group in self._refresh_groups.items():
-            on = group.get("on")
-            if on and line.startswith(tuple(on)):
+        # Uses precomputed prefix tuples to avoid per-line dict lookups and allocations.
+        for group_id, prefixes in self._refresh_triggers:
+            if line.startswith(prefixes):
                 self._schedule_refresh(group_id)
 
     def _handle_now_playing(self, snapshot: dict) -> None:
