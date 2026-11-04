@@ -71,13 +71,24 @@ def parse_upnp_description(xml_text: str) -> dict[str, str]:
     except ET.ParseError:
         return {}
     result: dict[str, str] = {}
+    # Performance optimization:
+    # 1. Check if '}' in element.tag before rsplitting to avoid string slice allocations
+    #    on non-namespaced tags.
+    # 2. Exit early once all target attributes in _UPNP_TAGS have been collected, avoiding
+    #    traversing hundreds of trailing nodes in large UPnP XML device descriptions.
+    remaining = len(_UPNP_TAGS)
     for element in root.iter():
-        attr = _UPNP_TAGS.get(element.tag.rsplit("}", 1)[-1])
+        tag = element.tag
+        local_tag = tag.rsplit("}", 1)[-1] if "}" in tag else tag
+        attr = _UPNP_TAGS.get(local_tag)
         if not attr or attr in result:
             continue
         text = (element.text or "").strip()
         if text:
             result[attr] = text
+            remaining -= 1
+            if not remaining:
+                break
     return result
 
 
