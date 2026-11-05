@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
-from avr.parser import parse_upnp_description
+from avr.models import AvrState, Discovery
+from avr.parser import TelnetParser, parse_upnp_description
+from avr.profile import load_profile
 
 
 def test_parse_upnp_description_complete() -> None:
@@ -60,3 +62,38 @@ def test_parse_upnp_description_empty_text_ignored() -> None:
     assert res == {
         "serial_number": "123456789012",
     }
+
+
+def test_telnet_parser_speaker_config_and_recompute_channels() -> None:
+    profile = load_profile()
+    discovery = Discovery()
+    state = AvrState()
+    parser = TelnetParser(profile, discovery)
+
+    # Initially no configured channels
+    assert discovery.configured_channels == set()
+
+    # Feed speaker config for Front speakers (LAR) - group code is FRO
+    assert parser.feed("SSSPCFRO LAR", state)
+    assert "FL" in discovery.configured_channels
+    assert "FR" in discovery.configured_channels
+    assert state.speaker_sizes["FRO"] == "LAR"
+
+    # Subwoofer double (2SP) - count group SWF
+    assert parser.feed("SSSPCSWF 2SP", state)
+    assert "SW" in discovery.configured_channels
+    assert "SW2" in discovery.configured_channels
+
+    # Surround Back single (1SP) - count group SBK
+    assert parser.feed("SSSPCSBK 1SP", state)
+    assert "SB" in discovery.configured_channels
+    assert "SBL" not in discovery.configured_channels
+
+    # Center speaker (CEN)
+    assert parser.feed("SSSPCCEN SMA", state)
+    assert "C" in discovery.configured_channels
+
+    # Non-configured / absent speaker
+    assert parser.feed("SSSPCFRH NON", state)
+    assert "FHL" not in discovery.configured_channels
+    assert "FHR" not in discovery.configured_channels
