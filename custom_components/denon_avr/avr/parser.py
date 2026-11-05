@@ -374,6 +374,15 @@ class TelnetParser:
             prefix = spec.get("prefix", "")
             if prefix:
                 self._readonly_buckets.setdefault(prefix[:2], []).append((control_id, spec))
+        # Performance optimization: Cache immutable speaker grammar settings from profile.
+        # This avoids repeatedly querying dictionary keys ('absent_token', 'double_token',
+        # 'groups', 'count_groups') on every incoming SSSPC speaker configuration line
+        # in _recompute_configured_channels.
+        speakers = profile.speakers
+        self._spk_absent = speakers.get("absent_token", "NON")
+        self._spk_double = speakers.get("double_token", "2SP")
+        self._spk_groups: dict[str, list[str]] = speakers.get("groups", {})
+        self._spk_count_groups: dict[str, dict[str, list[str]]] = speakers.get("count_groups", {})
 
     def feed(self, line: str, state: AvrState) -> bool:
         """Apply a single telnet line to the state. Return True if it changed."""
@@ -741,11 +750,10 @@ class TelnetParser:
         grammar); which groups are present comes entirely from the receiver.
         """
 
-        speakers = self._profile.speakers
-        absent = speakers.get("absent_token", "NON")
-        double = speakers.get("double_token", "2SP")
-        groups = speakers.get("groups", {})
-        count_groups = speakers.get("count_groups", {})
+        absent = self._spk_absent
+        double = self._spk_double
+        groups = self._spk_groups
+        count_groups = self._spk_count_groups
 
         configured: set[str] = set()
         for group, values in self._discovery.speaker_config.items():
@@ -753,7 +761,7 @@ class TelnetParser:
                 continue
             if group in count_groups:
                 key = "double" if double in values else "single"
-                configured.update(count_groups[group].get(key, []))
+                configured.update(count_groups[group].get(key, ()))
             elif group in groups:
                 configured.update(groups[group])
         self._discovery.configured_channels = configured
