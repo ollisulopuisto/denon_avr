@@ -112,6 +112,18 @@ class ProtocolProfile:
             control_id: ControlSpec(control_id, data)
             for control_id, data in raw.get("controls", {}).items()
         }
+        # Performance optimization: Pre-index controls by scope, group, and feature
+        # once at profile construction time. This avoids repeated O(N) traversals
+        # across all control specifications during queries, entity setup, and resync.
+        self._controls_by_scope: dict[str, list[ControlSpec]] = {}
+        self._controls_by_group: dict[str, list[ControlSpec]] = {}
+        self._feature_controls: list[ControlSpec] = []
+        for spec in self.controls.values():
+            self._controls_by_scope.setdefault(spec.scope, []).append(spec)
+            if spec.group:
+                self._controls_by_group.setdefault(spec.group, []).append(spec)
+            if spec.feature:
+                self._feature_controls.append(spec)
 
     # Grammar helpers. These read the numeric protocol facts from the profile so
     # that even the reference points are data driven.
@@ -198,17 +210,17 @@ class ProtocolProfile:
     def controls_by_scope(self, scope: str) -> list[ControlSpec]:
         """Return all control specs with the given scope."""
 
-        return [spec for spec in self.controls.values() if spec.scope == scope]
+        return list(self._controls_by_scope.get(scope, ()))
 
     def controls_by_group(self, group: str) -> list[ControlSpec]:
         """Return all control specs classified under the given command group."""
 
-        return [spec for spec in self.controls.values() if spec.group == group]
+        return list(self._controls_by_group.get(group, ()))
 
     def feature_controls(self) -> list[ControlSpec]:
         """Return all control specs that are gated by a receiver feature."""
 
-        return [spec for spec in self.controls.values() if spec.feature]
+        return list(self._feature_controls)
 
 
 @lru_cache(maxsize=1)
