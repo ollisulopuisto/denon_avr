@@ -99,6 +99,83 @@ def test_telnet_parser_speaker_config_and_recompute_channels() -> None:
     assert "FHR" not in discovery.configured_channels
 
 
+def test_telnet_parser_dispatch_core_commands() -> None:
+    profile = load_profile()
+    discovery = Discovery()
+    state = AvrState()
+    parser = TelnetParser(profile, discovery)
+
+    assert parser.feed("PWON", state)
+    assert state.system_power is True
+
+    assert parser.feed("ZMON", state)
+    assert state.zone("main").power is True
+    assert state.values["main_power"] is True
+
+    assert parser.feed("MV50", state)
+    assert state.zone("main").volume_raw == 50.0
+
+    assert parser.feed("MVMAX 80", state)
+    assert state.zone("main").volume_max_raw == 80.0
+
+    assert parser.feed("MUON", state)
+    assert state.zone("main").muted is True
+
+    assert parser.feed("MSQUICK1", state)
+    assert state.values["quick_select"] == 1
+
+    assert parser.feed("MSSTEREO", state)
+    assert state.values["sound_mode"] == "STEREO"
+
+    assert parser.feed("SICBL/SAT", state)
+    assert state.zone("main").source == "CBL/SAT"
+
+    assert parser.feed("SVGAME", state)
+    assert state.values["video_select"] == "GAME"
+
+    assert parser.feed("CVFL 50", state)
+    assert state.channel_trims["FL"] == 0.0
+
+    assert parser.feed("SSLEVFL 50", state)
+    assert state.channel_levels["FL"] == 0.0
+
+    assert parser.feed("SSSDEFL 0310", state)
+    assert state.channel_distances["FL"] == 3.10
+
+    assert parser.feed("SSCFR IDV", state)
+    assert state.values["crossover_speaker_selection"] == "IDV"
+
+    assert parser.feed("SSCFRFL 080", state)
+    assert state.crossovers["FL"] == 80
+
+    assert parser.feed("SSFUN1 CBL/SAT", state)
+    assert discovery.sources[0].name == "CBL/SAT"
+
+    assert parser.feed("SSSOD1 USE", state)
+    assert discovery.sources[0].visible is True
+
+    assert parser.feed("SSSMG MOV", state)
+    assert state.values["sound_mode_genre"] == "MOV"
+
+    assert parser.feed("SSQSNZMA1 Quick 1", state)
+    assert discovery.quick_select_names[1] == "Quick 1"
+
+    assert parser.feed("Z2ON", state)
+    assert state.zone("zone2").power is True
+
+    assert parser.feed("OPSMLALL MOV071Virtual", state)
+    assert parser.feed("OPSMLALL END", state)
+    assert "Virtual" in discovery.all_sound_modes
+
+    assert parser.feed("OPSML 011Direct", state)
+    assert state.values["sound_mode_display"] == "Direct"
+    assert parser.feed("OPSML END", state)
+    assert "Direct" in discovery.current_sound_modes
+
+    assert parser.feed("PSDYNEQ ON", state)
+    assert state.values["dynamic_eq"] is True
+
+
 def test_parse_device_info_complete() -> None:
     xml_data = """<?xml version="1.0" encoding="utf-8"?>
     <Device_Info>
