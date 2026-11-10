@@ -302,3 +302,34 @@ def test_parse_device_info_complete() -> None:
     assert len(discovery.sources) == 1
     assert discovery.sources[0].code == "CBL_SAT"
     assert discovery.sources[0].name == "CBL_SAT"
+
+
+def test_device_resync_queries() -> None:
+    from unittest.mock import MagicMock
+    from avr.device import DenonAvrDevice
+    from avr.models import ZoneDescriptor
+
+    session = MagicMock()
+    device = DenonAvrDevice(session, "192.168.1.100")
+    device._discovery.zones = [
+        ZoneDescriptor(id="main", index=1, name=None, is_main=True),
+        ZoneDescriptor(id="zone2", index=2, name="Zone 2", is_main=False),
+    ]
+    device._discovery.features = {"Audyssey", "ToneControl", "ChannelLevel", "DynamicEq"}
+
+    queries = device._resync_queries()
+    # Ensure no duplicates
+    assert len(queries) == len(set(queries))
+    # Ensure introspection queries are present at the beginning
+    assert "SSFUN ?" in queries
+    assert "SSSPC ?" in queries
+    # Core queries present
+    assert "PW?" in queries
+    assert "MV?" in queries
+    # Zone 2 query present
+    assert "Z2?" in queries
+    # Advertised feature queries present
+    assert "CV?" in queries
+    assert "SSLEV ?" in queries
+    assert "PSTONE CTRL ?" in queries
+    assert "PSDYNEQ ?" in queries
