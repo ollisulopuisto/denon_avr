@@ -709,6 +709,7 @@ class TelnetParser:
             if source.code == code:
                 if name is not None:
                     source.name = name
+                    self._discovery.invalidate_source_cache()
                 if visible is not None:
                     source.visible = visible
                 return
@@ -719,6 +720,7 @@ class TelnetParser:
                 visible=visible if visible is not None else True,
             )
         )
+        self._discovery.invalidate_source_cache()
 
     def _set_quick_select_name(self, remainder: str) -> bool:
         """Parse a 'QS<n> <name>' quick select entry into the discovery model."""

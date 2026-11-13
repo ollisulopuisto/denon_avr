@@ -333,3 +333,48 @@ def test_device_resync_queries() -> None:
     assert "SSLEV ?" in queries
     assert "PSTONE CTRL ?" in queries
     assert "PSDYNEQ ?" in queries
+
+
+def test_discovery_lookup_optimization() -> None:
+    from avr.models import ChannelDescriptor, SourceDescriptor
+
+    discovery = Discovery()
+    discovery.sources = [
+        SourceDescriptor(code="CBL_SAT", name="Cable / Satellite", visible=True),
+        SourceDescriptor(code="GAME", name="Game Console", visible=True),
+        SourceDescriptor(code="AUX", name="Auxiliary", visible=False),
+    ]
+    discovery.channels = [
+        ChannelDescriptor(code="FL", name="Front Left"),
+        ChannelDescriptor(code="FR", name="Front Right"),
+    ]
+
+    # Verify lookups
+    assert discovery.source_name("CBL_SAT") == "Cable / Satellite"
+    assert discovery.source_name("GAME") == "Game Console"
+    assert discovery.source_name("UNKNOWN") is None
+
+    assert discovery.source_code("Cable / Satellite") == "CBL_SAT"
+    assert discovery.source_code("Game Console") == "GAME"
+    assert discovery.source_code("Unknown") is None
+
+    assert discovery.channel_name("FL") == "Front Left"
+    assert discovery.channel_name("FR") == "Front Right"
+    assert discovery.channel_name("UNKNOWN") == "UNKNOWN"
+
+    # Verify visible_sources works properly
+    assert len(discovery.visible_sources()) == 2
+
+    # Verify cache invalidation when sources change in place or list replaced
+    discovery.sources.append(SourceDescriptor(code="BD", name="Blu-ray"))
+    discovery.invalidate_source_cache()
+    assert discovery.source_name("BD") == "Blu-ray"
+    assert discovery.source_code("Blu-ray") == "BD"
+
+    # Verify parser _upsert_source invalidation
+    profile = load_profile()
+    state = AvrState()
+    parser = TelnetParser(profile, discovery)
+    assert parser.feed("SSFUNBD New Blu-ray", state)
+    assert discovery.source_name("BD") == "New Blu-ray"
+    assert discovery.source_code("New Blu-ray") == "BD"
