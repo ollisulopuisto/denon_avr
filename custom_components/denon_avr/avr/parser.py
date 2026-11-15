@@ -389,7 +389,10 @@ class TelnetParser:
     def feed(self, line: str, state: AvrState) -> bool:
         """Apply a single telnet line to the state. Return True if it changed."""
 
-        line = line.rstrip("\r\n")
+        # Performance optimization: the telnet transport already strips the line
+        # terminator (transport/telnet.py _deliver strips "\r\n"), so re-stripping
+        # here would rescan every incoming line for nothing. The line is passed in
+        # already stripped; only guard against an empty line.
         if not line:
             return False
         try:
@@ -417,7 +420,9 @@ class TelnetParser:
             return True
         if prefix_2 == "MV":
             if line.startswith("MVMAX"):
-                return self._set_volume_max("main", line[5:], state)
+                # line[5:] keeps the space after "MVMAX" (e.g. "MVMAX 80" -> " 80");
+                # strip it so decode_half_step (no longer strips) parses it.
+                return self._set_volume_max("main", line[5:].strip(), state)
             if not line.startswith(("MVUP", "MVDOWN")):
                 return self._set_volume("main", line[2:], state)
             return False

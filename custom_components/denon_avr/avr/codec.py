@@ -21,7 +21,9 @@ def decode_half_step(token: str) -> float | None:
     Returns None when the token is not numeric (for example 'OFF' or 'NON').
     """
 
-    token = token.strip()
+    # Performance optimization: TelnetParser passes an already stripped token,
+    # so re-stripping here would rescan every numeric telnet value (volume,
+    # channel trims, levels) for nothing. Validate the raw token instead.
     if not token.isdigit():
         return None
     if len(token) >= 3:
