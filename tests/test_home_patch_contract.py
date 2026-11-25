@@ -27,3 +27,13 @@ async def test_home_volume_scale_and_limit(make_device):
     await dev.async_set_volume_level('main', 0.9)
     assert telnet.sent == ['MV36','MV60']
     await dev.async_stop()
+
+
+def test_entity_mismatch_warning_does_not_log_identifiers():
+    import ast
+    from pathlib import Path
+    tree = ast.parse((Path(__file__).parents[1] / 'custom_components/denon_avr/entity.py').read_text())
+    warnings = [node for node in ast.walk(tree) if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute) and node.func.attr == 'warning']
+    assert warnings
+    for node in warnings:
+        assert len(node.args) == 1, 'warning must not include unique IDs or expected MAC/serial-derived IDs'

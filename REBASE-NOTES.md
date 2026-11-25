@@ -28,3 +28,13 @@ Existing fork sync-upstream.yml retained byte-identical; upstream adds its
 read-only tests.yaml and requirements_test.txt. No custom workflow edits,
 credential, database or crypto edits. Manifest1.3.1 is release-preparing only.
 No merge, release, tag or HA deployment authorized.
+
+## Fork-main mergeability repair
+Merged fork main23a015d into this PR branch to reconcile ancestry. Conflict
+resolution keeps the upstream1.3.0 refactor and requested home patch behavior.
+Older fork-main Bolt cache/dispatch/resync optimizations are not restored on
+top of a different architecture. Their old test_parser.py belongs to the
+pre-refactor parser; upstream's current characterization suite is retained.
+CodeQL found an upstream warning logging MAC/serial-derived entity IDs;
+removed those values, kept the warning, added a failing-first AST regression.
+No branch protection changes or PR merge.

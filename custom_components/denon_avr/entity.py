@@ -118,7 +118,7 @@ def catalogue_entities(coordinator, platform: str, factories: dict, entries=None
         entity = factories[entry.kind](entry)
         expected = catalog.unique_id(identifier, entry.key)
         if entity.unique_id != expected:
-            _LOGGER.warning("Entity key %s differs from the catalogue %s; using the catalogue", entity.unique_id, expected)
+            _LOGGER.warning("Entity key differs from the catalogue; using the catalogue")
             entity._attr_unique_id = expected
         channels = entry.params.get("channels")
         if channels:
