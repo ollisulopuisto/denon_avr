@@ -42,10 +42,10 @@ class ControlService:
         await self._send(commands.system_power(self._profile, on))
 
     def level_to_raw(self, zone_id: str, level: float) -> float:
-        """A 0..1 level on the raw volume scale, using the reachable maximum."""
+        """A 0..1 level on the home raw/100 scale; clamp the receiver limit on send."""
 
         level = max(0.0, min(1.0, level))
-        return round(level * self._effective_max(zone_id) * 2) / 2
+        return round(level * 100.0 * 2) / 2
 
     async def set_volume_level(self, zone_id: str, level: float) -> None:
         await self.set_volume_raw(zone_id, self.level_to_raw(zone_id, level))

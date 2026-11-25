@@ -437,10 +437,10 @@
   "PWSTANDBY"
  ],
  "volume_level:main=0.5": [
-  "MV35"
+  "MV50"
  ],
  "volume_level:zone2=0.5": [
-  "Z249"
+  "Z250"
  ],
  "volume_raw:main=45.5": [
   "MV455"

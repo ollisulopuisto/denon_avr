@@ -149,6 +149,10 @@ class DenonAvrDevice:
     def volume_absolute_max(self) -> float:
         return self._discovery.volume.get("absolute_max", self._profile.volume_max_fallback)
 
+    def volume_raw_to_level(self, raw: float) -> float:
+        """Home volume scale is raw / 100; receiver limits only cap writes."""
+        return max(0.0, min(1.0, raw / 100.0))
+
     def volume_effective_max(self, zone_id: str = "main") -> float:
         """The highest reachable raw volume: the receiver limit (MVMAX) or scale max."""
 

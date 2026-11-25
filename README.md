@@ -276,3 +276,13 @@ respective owners.
 [maintainer]: https://github.com/LaserGuruGuy
 [hacs-shield]: https://img.shields.io/badge/HACS-Custom-41BDF5.svg?style=for-the-badge
 [hacs-url]: https://github.com/LaserGuruGuy/denon_avr
+
+
+## Home fork rebase (PR, not released)
+
+This branch follows upstream v1.3.0 and preserves the home AVR-X3600H
+Dolby Surround / Neural:X / Multi In + DSur fallback command tokens, the
+surround-speaker None option, and volume level = raw / 100. Receiver limits
+still cap writes. The prepared manifest version is 1.3.1, not a release.
+Upstream's newer architecture and features remain intact. No Home Assistant
+installation is changed by this PR.

@@ -235,3 +235,12 @@ def current_input_slot(device, collection_id: str, zone_id: str = "main") -> str
         return None
     matches = [slot for slot, item in device.video_config.collection(collection_id).items() if item.name == name]
     return matches[0] if len(matches) == 1 else None
+
+
+def speaker_size_options(profile, group: str) -> dict[str, str]:
+    """Keep the home receiver's surround-None choice without changing front sizes."""
+    speakers = profile.speakers
+    options = dict(speakers.get("sizes", {}).get("options", {}))
+    if group in speakers.get("absent_selectable", []):
+        options[speakers.get("absent_token", "NON")] = "None"
+    return options

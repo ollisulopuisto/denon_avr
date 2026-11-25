@@ -1,0 +1,121 @@
+# Keep this fork's branches on top of upstream (LaserGuruGuy/denon_avr).
+#
+# Daily, and on demand: if upstream main has new commits, merge them into main
+# and into each fork branch, run the tests, and push only the branches that
+# merged cleanly AND passed. Anything that conflicts or fails is left untouched
+# on the remote and reported in a single "Upstream sync needs attention" issue,
+# and the run fails, so nothing is skipped silently. Deploying to Home Assistant
+# stays a manual step.
+
+name: Sync with upstream
+
+on:
+  schedule:
+    - cron: "17 4 * * *"
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "Run merges and tests even if upstream has nothing new"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: sync-upstream
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    env:
+      UPSTREAM: https://github.com/LaserGuruGuy/denon_avr.git
+      # Order matters: main first, the topic branches, combined last.
+      BRANCHES: >-
+        main
+        pr/test-harness
+        pr/sound-modes
+        pr/new-controls
+        pr/log-unhandled
+        pr/x3600h-tokens
+        combined
+      ISSUE_TITLE: Upstream sync needs attention
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Fetch upstream
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote add upstream "$UPSTREAM"
+          git fetch --no-tags upstream main
+          git fetch --no-tags origin
+          new=$(git rev-list --count origin/main..upstream/main)
+          echo "Upstream commits not yet in main: $new"
+          echo "NEW=$new" >> "$GITHUB_ENV"
+
+      - name: Merge, test and push each branch
+        if: env.NEW != '0' || inputs.force
+        run: |
+          set -u
+          report=""
+          pushed=""
+          for b in $BRANCHES; do
+            if ! git rev-parse --verify --quiet "origin/$b" >/dev/null; then
+              report+="- \`$b\`: branch not found on the fork"$'\n'
+              continue
+            fi
+            git switch --quiet -C "$b" "origin/$b"
+            if ! git merge --no-edit upstream/main; then
+              files=$(git diff --name-only --diff-filter=U | tr '\n' ' ')
+              git merge --abort
+              report+="- \`$b\`: merge conflict in $files"$'\n'
+              continue
+            fi
+            if [ -d tests ]; then
+              python -m venv "/tmp/venv-$$" >/dev/null && . "/tmp/venv-$$/bin/activate"
+              pip install --quiet -r requirements_test.txt
+              if ! pytest -q tests > "/tmp/pytest.log" 2>&1; then
+                tail -n 30 /tmp/pytest.log
+                report+="- \`$b\`: tests fail after merging upstream ($(tail -n 1 /tmp/pytest.log))"$'\n'
+                deactivate; rm -rf "/tmp/venv-$$"
+                continue
+              fi
+              echo "$b: $(tail -n 1 /tmp/pytest.log)"
+              deactivate; rm -rf "/tmp/venv-$$"
+            fi
+            if [ "$(git rev-parse HEAD)" = "$(git rev-parse "origin/$b")" ]; then
+              echo "$b: already up to date"
+              continue
+            fi
+            if git push --quiet origin "HEAD:refs/heads/$b"; then
+              pushed+="$b "
+            else
+              report+="- \`$b\`: push rejected (for example an upstream change under .github/workflows, which this token may not push)"$'\n'
+            fi
+          done
+          echo "Pushed: ${pushed:-nothing}"
+          if [ -n "$report" ]; then
+            printf '%s' "$report"
+            body=$(printf 'The daily sync with upstream could not update these branches. They were left as they were.\n\n%s\nRun: %s/%s/actions/runs/%s\n' "$report" "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID")
+            existing=$(gh issue list --state open --search "in:title \"$ISSUE_TITLE\"" --json number --jq '.[0].number')
+            if [ -n "$existing" ]; then
+              gh issue comment "$existing" --body "$body"
+            else
+              gh issue create --title "$ISSUE_TITLE" --body "$body"
+            fi
+            exit 1
+          fi
+
+      - name: Nothing new upstream
+        if: env.NEW == '0' && !inputs.force
+        run: echo "Upstream main has no new commits; nothing to do."

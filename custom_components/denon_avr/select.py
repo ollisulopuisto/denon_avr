@@ -22,6 +22,7 @@ from .helpers import (
     enum_options,
     group_name,
     is_size_token,
+    speaker_size_options,
     subwoofer_count_options,
 )
 
@@ -281,7 +282,7 @@ class DenonAvrSpeakerSize(DenonAvrEntity, SelectEntity):
         )
         self._group = group
         self._attr_entity_registry_enabled_default = enabled
-        sizes = coordinator.device.profile.speakers.get("sizes", {}).get("options", {})
+        sizes = speaker_size_options(coordinator.device.profile, group)
         self._token_to_label = dict(sizes)
         self._label_to_token = {label: token for token, label in sizes.items()}
         self._attr_options = list(sizes.values())
@@ -294,7 +295,11 @@ class DenonAvrSpeakerSize(DenonAvrEntity, SelectEntity):
         # Only where the receiver reports a size: newer firmware reports presence (YES/NO)
         # instead, so the entity stays (never removed) but is unavailable.
         token = self.coordinator.data.speaker_sizes.get(self._group)
-        return super().available and is_size_token(self.coordinator.device, token)
+        return super().available and (
+            is_size_token(self.coordinator.device, token)
+            or (self._group in self.coordinator.device.profile.speakers.get("absent_selectable", [])
+                and token == self.coordinator.device.profile.speakers.get("absent_token", "NON"))
+        )
 
     @property
     def current_option(self) -> str | None:
