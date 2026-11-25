@@ -4,7 +4,7 @@
     "step": {
       "user": {
         "title": "Denon AVR",
-        "description": "Voer het IP-adres van je Denon-receiver in. De naam en mogelijkheden worden automatisch van het apparaat gelezen.",
+        "description": "Voer het IP-adres van je Denon- of Marantz-receiver in. De naam en mogelijkheden worden automatisch van het apparaat gelezen.",
         "data": {
           "host": "IP-adres"
         }
@@ -15,7 +15,7 @@
       },
       "reconfigure": {
         "title": "Denon AVR",
-        "description": "Werk het IP-adres van je Denon-receiver bij.",
+        "description": "Werk het IP-adres van je Denon- of Marantz-receiver bij.",
         "data": {
           "host": "IP-adres"
         }
@@ -44,7 +44,29 @@
         "name": "Volume"
       },
       "input_signal": {
-        "name": "Ingangssignaal"
+        "name": "Ingangssignaal",
+        "state": {
+          "analog": "Analoog",
+          "pcm": "PCM",
+          "dolby_digital": "Dolby Digital",
+          "dolby_truehd_or_dd_plus": "Dolby TrueHD of Dolby Digital Plus",
+          "dolby_truehd_or_atmos": "Dolby TrueHD of Dolby Atmos",
+          "dts": "DTS",
+          "dts_hd_high_resolution": "DTS-HD High Resolution",
+          "dts_hd_master_audio": "DTS-HD Master Audio",
+          "no_or_unknown_signal": "Geen of onbekend signaal",
+          "pcm_zero": "PCM Zero",
+          "mp3": "MP3",
+          "aac": "AAC",
+          "flac": "FLAC",
+          "dolby_atmos": "Dolby Atmos",
+          "vorbis": "Vorbis"
+        },
+        "state_attributes": {
+          "code": {
+            "name": "Code"
+          }
+        }
       },
       "sample_rate": {
         "name": "Bemonsteringsfrequentie"
@@ -57,6 +79,154 @@
       },
       "mode_info": {
         "name": "Modusinformatie"
+      },
+      "amp_mode": {
+        "name": "Versterkermodus",
+        "state": {
+          "9_1ch": "9.1ch",
+          "7_1ch_zone2": "7.1ch + ZONE2",
+          "7_1ch_zone3": "7.1ch + ZONE3",
+          "7_1ch_zone2_3_mono": "7.1ch + ZONE2/3-MONO",
+          "7_1ch_front_b": "7.1ch + Front B",
+          "7_1ch_bi_amp": "7.1ch (Bi-Amp)",
+          "11_1ch": "11.1ch",
+          "5_1ch_zone2_3": "5.1ch + ZONE2/3",
+          "5_1ch_bi_amp_zone2": "5.1ch (Bi-Amp) + ZONE2",
+          "5_1ch_full_bi_amp": "5.1ch Full Bi-Amp",
+          "custom": "Aangepast",
+          "preamplifier": "Voorversterker",
+          "5_1ch_front_lcr_bi_amp": "5.1ch (Front LCR Bi-Amp)"
+        },
+        "state_attributes": {
+          "mode_id": {
+            "name": "Modus-id"
+          },
+          "preamplifier": {
+            "name": "Alleen voorversterker"
+          }
+        }
+      },
+      "subwoofer_mode": {
+        "name": "Subwoofer-richtingsmodus",
+        "state": {
+          "standard": "Standaard",
+          "directional": "Richtinggevoelig"
+        }
+      },
+      "subwoofer_layout": {
+        "name": "Subwooferopstelling",
+        "state": {
+          "left_right": "Links/rechts",
+          "front_rear": "Voor/achter",
+          "fl_fr_rear": "LV/RV/achter",
+          "fl_fr_rl_rr": "LV/RV/LA/RA"
+        }
+      },
+      "speaker_layout_protocol": {
+        "name": "Effectluidsprekers (hoogte/breed)"
+      },
+      "video_input": {
+        "name": "Video-ingang"
+      },
+      "video_output": {
+        "name": "Video-uitgang"
+      },
+      "hdr_input": {
+        "name": "HDR-ingang"
+      },
+      "hdr_output": {
+        "name": "HDR-uitgang"
+      },
+      "input_channels": {
+        "name": "Ingangskanalen",
+        "state_attributes": {
+          "channels": {
+            "name": "Kanalen"
+          }
+        }
+      },
+      "active_speakers": {
+        "name": "Actieve luidsprekers",
+        "state_attributes": {
+          "channels": {
+            "name": "Kanalen"
+          }
+        }
+      },
+      "speaker_connection_front": {
+        "name": "Verbinding voor",
+        "state": {
+          "none": "Geen",
+          "speaker_and_preout": "Luidspreker en pre-out",
+          "preout_only": "Alleen pre-out"
+        }
+      },
+      "speaker_connection_center": {
+        "name": "Verbinding center",
+        "state": {
+          "none": "Geen",
+          "speaker_and_preout": "Luidspreker en pre-out",
+          "preout_only": "Alleen pre-out"
+        }
+      },
+      "speaker_connection_surround": {
+        "name": "Verbinding surround",
+        "state": {
+          "none": "Geen",
+          "speaker_and_preout": "Luidspreker en pre-out",
+          "preout_only": "Alleen pre-out"
+        }
+      },
+      "speaker_connection_surround_back": {
+        "name": "Verbinding surround achter",
+        "state": {
+          "none": "Geen",
+          "speaker_and_preout": "Luidspreker en pre-out",
+          "preout_only": "Alleen pre-out"
+        }
+      },
+      "speaker_connection_front_wide": {
+        "name": "Verbinding voor breed",
+        "state": {
+          "none": "Geen",
+          "speaker_and_preout": "Luidspreker en pre-out",
+          "preout_only": "Alleen pre-out"
+        }
+      },
+      "speaker_connection_height_front": {
+        "name": "Verbinding hoogte voor",
+        "state": {
+          "none": "Geen",
+          "speaker_and_preout": "Luidspreker en pre-out",
+          "preout_only": "Alleen pre-out"
+        }
+      },
+      "speaker_connection_height_middle": {
+        "name": "Verbinding hoogte midden",
+        "state": {
+          "none": "Geen",
+          "speaker_and_preout": "Luidspreker en pre-out",
+          "preout_only": "Alleen pre-out"
+        }
+      },
+      "speaker_connection_height_rear": {
+        "name": "Verbinding hoogte achter",
+        "state": {
+          "none": "Geen",
+          "speaker_and_preout": "Luidspreker en pre-out",
+          "preout_only": "Alleen pre-out"
+        }
+      },
+      "speaker_connection_top_surround": {
+        "name": "Verbinding boven",
+        "state": {
+          "none": "Geen",
+          "speaker_and_preout": "Luidspreker en pre-out",
+          "preout_only": "Alleen pre-out"
+        }
+      },
+      "network_module": {
+        "name": "Netwerkmodule"
       }
     },
     "select": {
@@ -179,6 +349,90 @@
       },
       "eq_channel": {
         "name": "Kanaal"
+      },
+      "input_signal_format": {
+        "name": "{input} 4K/8K-signaalformaat",
+        "state": {
+          "standard": "Standaard",
+          "enhanced": "Verhoogd",
+          "custom": "Aangepast",
+          "8k_enhanced": "8K Verhoogd"
+        }
+      },
+      "input_hdcp": {
+        "name": "{input} HDCP",
+        "state": {
+          "auto": "Automatisch",
+          "hdcp_1_4": "1.4",
+          "hdcp_2_3": "2.3",
+          "custom": "Aangepast"
+        }
+      },
+      "current_input_signal_format": {
+        "name": "4K/8K-signaalformaat (huidige ingang)",
+        "state": {
+          "standard": "Standaard",
+          "enhanced": "Verhoogd",
+          "custom": "Aangepast",
+          "8k_enhanced": "8K Verhoogd"
+        },
+        "state_attributes": {
+          "input": {
+            "name": "Ingang"
+          },
+          "slot": {
+            "name": "Slot"
+          }
+        }
+      },
+      "current_input_hdcp": {
+        "name": "HDCP (huidige ingang)",
+        "state": {
+          "auto": "Automatisch",
+          "hdcp_1_4": "1.4",
+          "hdcp_2_3": "2.3",
+          "custom": "Aangepast"
+        },
+        "state_attributes": {
+          "input": {
+            "name": "Ingang"
+          },
+          "slot": {
+            "name": "Slot"
+          }
+        }
+      },
+      "speaker_layout_assign": {
+        "name": "Luidsprekerindeling (klaargezet)",
+        "state": {
+          "9_1ch": "9.1ch",
+          "7_1ch_zone2": "7.1ch + ZONE2",
+          "7_1ch_zone3": "7.1ch + ZONE3",
+          "7_1ch_zone2_3_mono": "7.1ch + ZONE2/3-MONO",
+          "7_1ch_front_b": "7.1ch + Front B",
+          "7_1ch_bi_amp": "7.1ch (Bi-Amp)",
+          "11_1ch": "11.1ch",
+          "5_1ch_zone2_3": "5.1ch + ZONE2/3",
+          "5_1ch_bi_amp_zone2": "5.1ch (Bi-Amp) + ZONE2",
+          "5_1ch_full_bi_amp": "5.1ch Full Bi-Amp",
+          "custom": "Aangepast",
+          "preamplifier": "Voorversterker",
+          "5_1ch_front_lcr_bi_amp": "5.1ch (Front LCR Bi-Amp)"
+        },
+        "state_attributes": {
+          "pending": {
+            "name": "Wijziging klaargezet"
+          },
+          "receiver_mode": {
+            "name": "Modus op de receiver"
+          },
+          "remeasure_room_correction": {
+            "name": "Kamercorrectie opnieuw inmeten"
+          }
+        }
+      },
+      "speaker_preset": {
+        "name": "Luidsprekerpreset"
       }
     },
     "switch": {
@@ -302,7 +556,69 @@
       },
       "eq_default": {
         "name": "Standaard"
+      },
+      "speaker_layout_apply": {
+        "name": "Luidsprekerindeling toepassen"
+      },
+      "speaker_layout_discard": {
+        "name": "Luidsprekerwijziging verwerpen"
+      },
+      "speaker_layout_restore": {
+        "name": "Luidsprekerindeling herstellen"
       }
+    }
+  },
+  "device": {
+    "audio": {
+      "name": "{model} Audio"
+    },
+    "video": {
+      "name": "{model} Video"
+    },
+    "picture": {
+      "name": "{model} Beeld"
+    },
+    "speakers": {
+      "name": "{model} Luidsprekers"
+    },
+    "eq": {
+      "name": "{model} Grafische EQ"
+    },
+    "inputs": {
+      "name": "{model} Ingangen"
+    }
+  },
+  "exceptions": {
+    "input_option_refused": {
+      "message": "De receiver staat {option} voor {input} op dit moment niet toe."
+    },
+    "speaker_layout_refused": {
+      "message": "De receiver staat luidsprekerindeling {option} niet toe."
+    },
+    "speaker_layout_not_applied": {
+      "message": "De receiver heeft de indeling niet bevestigd. Is er toch iets gewijzigd, dan zet Luidsprekerindeling herstellen het terug."
+    },
+    "web_setting_not_applied": {
+      "message": "De receiver heeft de instelling niet bevestigd."
+    },
+    "speaker_layout_not_restored": {
+      "message": "Niet alles kon worden hersteld: {positions}. Controleer dit op de receiver."
+    },
+    "speaker_layout_restore_unavailable": {
+      "message": "De receiver gaf geen antwoord of is bezig; er is niets hersteld."
+    },
+    "speaker_layout_restore_stale": {
+      "message": "De luidsprekerpreset of -indeling is daarna op de receiver gewijzigd; er is niets hersteld."
+    }
+  },
+  "issues": {
+    "speaker_layout_changed": {
+      "title": "Luidsprekerindeling wijzigde ook andere keuzes",
+      "description": "Het toepassen van de luidsprekerindeling wijzigde ook de posities {positions}. De receiver herstelt die niet als je teruggaat. Druk op Luidsprekerindeling herstellen om alles terug te zetten (ook front A/B), of op Luidsprekerwijziging verwerpen om het zo te laten en deze melding te sluiten. Het herstelpunt vervalt als Home Assistant herstart of de integratie herlaadt."
+    },
+    "speaker_layout_kept": {
+      "title": "Sommige keuzes zijn gelaten zoals jij ze wijzigde",
+      "description": "Het herstellen van de luidsprekerindeling liet {positions} ongemoeid, omdat die na het toepassen zijn gewijzigd. Controleer ze op de receiver."
     }
   }
 }

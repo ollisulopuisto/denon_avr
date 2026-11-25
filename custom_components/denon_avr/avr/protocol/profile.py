@@ -1,0 +1,224 @@
+"""Loader and typed accessor for the external protocol profile."""
+
+from __future__ import annotations
+
+import json
+from functools import lru_cache
+from pathlib import Path
+from typing import Any
+
+# The profile file lives next to this module inside the avr package.
+_PROFILE_PATH = Path(__file__).parent / "protocol_profile.json"
+
+
+class ControlSpec:
+    """Typed view over a single control entry from the profile."""
+
+    def __init__(self, control_id: str, data: dict[str, Any]) -> None:
+        self.id = control_id
+        self._data = data
+
+    @property
+    def kind(self) -> str:
+        """The value kind that drives encoding/decoding (power, onoff, ...)."""
+
+        return self._data["kind"]
+
+    @property
+    def scope(self) -> str:
+        """One of 'core', 'zone2' or 'feature'."""
+
+        return self._data.get("scope", "feature")
+
+    @property
+    def group(self) -> str | None:
+        """The command family this control belongs to."""
+
+        return self._data.get("group")
+
+    @property
+    def zone(self) -> str | None:
+        """The zone this control belongs to, if any."""
+
+        return self._data.get("zone")
+
+    @property
+    def feature(self) -> str | None:
+        """The receiver FuncName that gates a feature control, if any."""
+
+        return self._data.get("feature")
+
+    @property
+    def prefix(self) -> str:
+        """The telnet token that prefixes both queries and set commands."""
+
+        return self._data.get("prefix", "")
+
+    @property
+    def query(self) -> str | None:
+        """The full query string that asks the receiver for the current value."""
+
+        return self._data.get("query")
+
+    @property
+    def values(self) -> list[str]:
+        """The ordered wire values for an enum control (empty otherwise)."""
+
+        return list(self._data.get("values", []))
+
+    def get(self, key: str, default: Any = None) -> Any:
+        """Return a raw profile attribute (for kind specific extras)."""
+
+        return self._data.get(key, default)
+
+
+class ProtocolProfile:
+    """The parsed protocol profile with grammar, controls and introspection."""
+
+    def __init__(self, raw: dict[str, Any]) -> None:
+        self._raw = raw
+        self.grammar: dict[str, Any] = raw.get("grammar", {})
+        self.zones: dict[str, Any] = raw.get("zones", {})
+        self.speakers: dict[str, Any] = raw.get("speakers", {})
+        self.sound_mode_genre_commands: dict[str, str] = {
+            code: value
+            for code, value in raw.get("sound_mode_genre_commands", {}).items()
+            if code != "doc"
+        }
+        self.sound_mode_wire_overrides: dict[str, str] = {
+            name: value
+            for name, value in raw.get("sound_mode_wire_overrides", {}).items()
+            if name != "doc"
+        }
+        self.introspection: dict[str, dict[str, Any]] = raw.get("introspection", {})
+        self.readonly: dict[str, dict[str, Any]] = raw.get("readonly", {})
+        self.refresh: dict[str, Any] = raw.get("refresh", {})
+        # Named after the interface in use: Deviceinfo on port 8080.
+        self.interface_type: str | None = raw.get("receiver_type")
+        self.controls: dict[str, ControlSpec] = {
+            control_id: ControlSpec(control_id, data)
+            for control_id, data in raw.get("controls", {}).items()
+        }
+
+        # Performance optimization: Pre-index controls by scope, group, and feature
+        # once at profile construction time. This avoids repeated O(N) traversals
+        # across all control specifications during queries, entity setup, and resync.
+        self._controls_by_scope: dict[str, list[ControlSpec]] = {}
+        self._controls_by_group: dict[str, list[ControlSpec]] = {}
+        self._feature_controls: list[ControlSpec] = []
+        for spec in self.controls.values():
+            self._controls_by_scope.setdefault(spec.scope, []).append(spec)
+            if spec.group:
+                self._controls_by_group.setdefault(spec.group, []).append(spec)
+            if spec.feature:
+                self._feature_controls.append(spec)
+
+    # Grammar helpers.
+    @property
+    def line_terminator(self) -> str:
+        return self.grammar.get("line_terminator", "\r")
+
+    @property
+    def list_terminator(self) -> str:
+        return self.grammar.get("list_terminator", "END")
+
+    @property
+    def no_signal_token(self) -> str:
+        return self.grammar.get("no_signal_token", "NON")
+
+    @property
+    def volume_reference(self) -> float:
+        return float(self.grammar.get("volume_reference", 80.0))
+
+    @property
+    def level_reference(self) -> float:
+        return float(self.grammar.get("level_reference", 50.0))
+
+    @property
+    def volume_max_fallback(self) -> float:
+        return float(self.grammar.get("volume_max_fallback", 98.0))
+
+    @property
+    def distance(self) -> dict[str, Any]:
+        """Speaker distance grammar (divisor, min, max, step, unit)."""
+
+        return self.grammar.get("distance", {})
+
+    @property
+    def crossover(self) -> dict[str, Any]:
+        """Speaker crossover grammar (width, unit, discrete Hz value set)."""
+
+        return self.grammar.get("crossover", {})
+
+    def group_channels(self, group: str) -> list[str]:
+        """Return the channel codes that make up a speaker group."""
+
+        groups = self.speakers.get("groups", {})
+        if group in groups:
+            return list(groups[group])
+        count = self.speakers.get("count_groups", {})
+        if group in count:
+            members: list[str] = []
+            for _n, codes in sorted(count[group].get("by_count", {}).items(), key=lambda kv: int(kv[0])):
+                for code in codes:
+                    if code not in members:
+                        members.append(code)
+            return members
+        return []
+
+    @property
+    def poll_queries(self) -> list[str]:
+        """Queries sent with the reconcile poll while the main zone is on."""
+
+        return list(self.refresh.get("poll", {}).get("queries", ()))
+
+    @property
+    def refresh_groups(self) -> dict[str, dict[str, Any]]:
+        """Coalesced re-query groups keyed by id."""
+
+        return self.refresh.get("groups", {})
+
+    def introspection_query(self, key: str) -> str | None:
+        """Return the query string for an introspection item, or None."""
+
+        return self.introspection.get(key, {}).get("query")
+
+    @property
+    def introspection_sentinel(self) -> dict[str, str]:
+        """The query whose reply marks the end of the introspection replies."""
+
+        return self._raw.get("introspection_sentinel", {})
+
+    def introspection_prefix(self, key: str) -> str | None:
+        """Return the line prefix of an introspection item, or None."""
+
+        return self.introspection.get(key, {}).get("prefix")
+
+    def control(self, control_id: str) -> ControlSpec | None:
+        """Return a control spec by id, or None when unknown."""
+
+        return self.controls.get(control_id)
+
+    def controls_by_scope(self, scope: str) -> list[ControlSpec]:
+        """Return all control specs with the given scope."""
+
+        return list(self._controls_by_scope.get(scope, ()))
+
+    def controls_by_group(self, group: str) -> list[ControlSpec]:
+        """Return all control specs classified under the given command group."""
+
+        return list(self._controls_by_group.get(group, ()))
+
+    def feature_controls(self) -> list[ControlSpec]:
+        """Return all control specs that are gated by a receiver feature."""
+
+        return list(self._feature_controls)
+
+
+@lru_cache(maxsize=1)
+def load_profile() -> ProtocolProfile:
+    """Load and cache the protocol profile bundled with the package."""
+
+    with _PROFILE_PATH.open(encoding="utf-8") as handle:
+        raw = json.load(handle)
+    return ProtocolProfile(raw)

@@ -1,0 +1,786 @@
+{
+ "graphic_eq": {
+  "supported": true
+ },
+ "speaker_config": {
+  "availability": {
+   "AdvancedSetup": {
+    "display": 4,
+    "gray": "0"
+   },
+   "AmpAssign": {
+    "display": 1,
+    "gray": "0"
+   },
+   "Bass": {
+    "display": 1,
+    "gray": "0"
+   },
+   "Crossovers": {
+    "display": 3,
+    "gray": "0"
+   },
+   "DiracLiveSetup": {
+    "display": 3,
+    "gray": "0"
+   },
+   "DiracLiveSetupRC": {
+    "display": 1,
+    "gray": "0"
+   },
+   "Distances": {
+    "display": 3,
+    "gray": "0"
+   },
+   "FrontSpeaker": {
+    "display": 3,
+    "gray": "0"
+   },
+   "LFEDistribution": {
+    "display": 3,
+    "gray": "0"
+   },
+   "LPFforLFE": {
+    "display": 3,
+    "gray": "0"
+   },
+   "Levels": {
+    "display": 3,
+    "gray": "0"
+   },
+   "SpeakerConfig": {
+    "display": 1,
+    "gray": "0"
+   },
+   "SpeakerLayout": {
+    "display": 3,
+    "gray": "0"
+   },
+   "SpeakerPreset": {
+    "display": 3,
+    "gray": "0"
+   },
+   "Subwoofer": {
+    "display": 1,
+    "gray": "0"
+   },
+   "SubwooferOutput": {
+    "display": 3,
+    "gray": "0"
+   },
+   "TactileTransducer": {
+    "display": 3,
+    "gray": "0"
+   },
+   "TwoChPlayback": {
+    "display": 1,
+    "gray": "0"
+   },
+   "WirelessSpeakerSetup": {
+    "display": 1,
+    "gray": "0"
+   },
+   "XLROutputAssign": {
+    "display": 1,
+    "gray": "0"
+   }
+  },
+  "collections": {
+   "speaker_connection": {
+    "2": {
+     "availability": {
+      "display": 3,
+      "gray": "0"
+     },
+     "name": "",
+     "options": [],
+     "slot": "2",
+     "value": "1"
+    },
+    "3": {
+     "availability": {
+      "display": 3,
+      "gray": "0"
+     },
+     "name": "",
+     "options": [],
+     "slot": "3",
+     "value": "1"
+    },
+    "4": {
+     "availability": {
+      "display": 3,
+      "gray": "0"
+     },
+     "name": "",
+     "options": [],
+     "slot": "4",
+     "value": "1"
+    },
+    "5": {
+     "availability": {
+      "display": 2,
+      "gray": "0"
+     },
+     "name": "",
+     "options": [],
+     "slot": "5",
+     "value": "0"
+    }
+   },
+   "speaker_layout_assign": {
+    "1": {
+     "availability": {
+      "display": 3,
+      "gray": "0"
+     },
+     "name": "",
+     "options": [
+      "18",
+      "1",
+      "2",
+      "7",
+      "14",
+      "6",
+      "17",
+      "19"
+     ],
+     "slot": "1",
+     "value": "6"
+    }
+   },
+   "speaker_layout_config": {
+    "15": {
+     "availability": {
+      "display": 3,
+      "gray": "0"
+     },
+     "name": "",
+     "options": [
+      "1",
+      "6",
+      "7",
+      "8",
+      "9"
+     ],
+     "slot": "15",
+     "value": "6"
+    },
+    "19": {
+     "availability": {
+      "display": 1,
+      "gray": "0"
+     },
+     "name": "",
+     "options": [],
+     "slot": "19",
+     "value": "0"
+    },
+    "2": {
+     "availability": {
+      "display": 2,
+      "gray": "0"
+     },
+     "name": "",
+     "options": [
+      "4",
+      "5"
+     ],
+     "slot": "2",
+     "value": "4"
+    },
+    "20": {
+     "availability": {
+      "display": 2,
+      "gray": "0"
+     },
+     "name": "",
+     "options": [],
+     "slot": "20",
+     "value": "2"
+    },
+    "21": {
+     "availability": {
+      "display": 1,
+      "gray": "0"
+     },
+     "name": "",
+     "options": [],
+     "slot": "21",
+     "value": "0"
+    },
+    "22": {
+     "availability": {
+      "display": 1,
+      "gray": "0"
+     },
+     "name": "",
+     "options": [],
+     "slot": "22",
+     "value": "0"
+    },
+    "23": {
+     "availability": {
+      "display": 1,
+      "gray": "0"
+     },
+     "name": "",
+     "options": [],
+     "slot": "23",
+     "value": "0"
+    },
+    "24": {
+     "availability": {
+      "display": 1,
+      "gray": "0"
+     },
+     "name": "",
+     "options": [],
+     "slot": "24",
+     "value": "0"
+    },
+    "25": {
+     "availability": {
+      "display": 1,
+      "gray": "0"
+     },
+     "name": "",
+     "options": [],
+     "slot": "25",
+     "value": "0"
+    },
+    "3": {
+     "availability": {
+      "display": 3,
+      "gray": "0"
+     },
+     "name": "",
+     "options": [
+      "4",
+      "5"
+     ],
+     "slot": "3",
+     "value": "4"
+    },
+    "4": {
+     "availability": {
+      "display": 3,
+      "gray": "0"
+     },
+     "name": "",
+     "options": [
+      "4",
+      "5"
+     ],
+     "slot": "4",
+     "value": "4"
+    },
+    "5": {
+     "availability": {
+      "display": 3,
+      "gray": "0"
+     },
+     "name": "",
+     "options": [
+      "5",
+      "6",
+      "7"
+     ],
+     "slot": "5",
+     "value": "5"
+    },
+    "8": {
+     "availability": {
+      "display": 3,
+      "gray": "0"
+     },
+     "name": "",
+     "options": [
+      "1",
+      "0"
+     ],
+     "slot": "8",
+     "value": "0"
+    }
+   }
+  },
+  "controls": {
+   "amp_assign": {
+    "available": false,
+    "options": {},
+    "present": false,
+    "value": null
+   },
+   "floor_layout": {
+    "available": false,
+    "options": {
+     "1": "5ch",
+     "2": "5ch & SB",
+     "3": "5ch & FW",
+     "4": "5ch & SB & FW"
+    },
+    "present": false,
+    "value": null
+   },
+   "height_speaker": {
+    "available": false,
+    "options": {
+     "1": "Height None / Dolby None",
+     "10": "Height 5ch / Dolby None",
+     "11": "Height 5ch / Dolby 2ch",
+     "12": "Height 6ch / Dolby None",
+     "13": "Height 6ch / Dolby 2ch",
+     "14": "Height 7ch / Dolby None",
+     "15": "Height 8ch / Dolby None",
+     "2": "Height None / Dolby 2ch",
+     "3": "Height None / Dolby 4ch",
+     "4": "Height None / Dolby 6ch",
+     "5": "Height 2ch / Dolby None",
+     "6": "Height 2ch / Dolby 2ch",
+     "7": "Height 2ch / Dolby 4ch",
+     "8": "Height 4ch / Dolby None",
+     "9": "Height 4ch / Dolby 2ch"
+    },
+    "present": false,
+    "value": null
+   }
+  },
+  "feature_flags": [
+   "SpeakerPreset"
+  ],
+  "supported": true,
+  "value_lists": {
+   "crossover": [
+    "0",
+    "40",
+    "60",
+    "70",
+    "80",
+    "90",
+    "100",
+    "110",
+    "120",
+    "150",
+    "180",
+    "200",
+    "250"
+   ],
+   "lpf_for_lfe": [
+    "70",
+    "80",
+    "90",
+    "100",
+    "110",
+    "120",
+    "150",
+    "180",
+    "200",
+    "250"
+   ]
+  }
+ },
+ "video_config": {
+  "availability": {
+   "AnalogVideoOut": {
+    "display": 1,
+    "gray": "0"
+   },
+   "ComponentVideo": {
+    "display": 1,
+    "gray": "0"
+   },
+   "FourKEightKSignalFormat": {
+    "display": 1,
+    "gray": "0"
+   },
+   "FourKEightKSignalFormatPerInput": {
+    "display": 3,
+    "gray": "0"
+   },
+   "FourKSignalFormat": {
+    "display": 1,
+    "gray": "0"
+   },
+   "HDCPSetup": {
+    "display": 3,
+    "gray": "0"
+   },
+   "HDMIScaler": {
+    "display": 1,
+    "gray": "0"
+   },
+   "HDMISetup": {
+    "display": 3,
+    "gray": "0"
+   },
+   "OnScreenDisplay": {
+    "display": 3,
+    "gray": "0"
+   },
+   "OutputSettings": {
+    "display": 3,
+    "gray": "0"
+   },
+   "PictureAdjust": {
+    "display": 1,
+    "gray": "0"
+   },
+   "ScreenSaver": {
+    "display": 3,
+    "gray": "0"
+   },
+   "TVFormat": {
+    "display": 1,
+    "gray": "0"
+   }
+  },
+  "collections": {
+   "input_hdcp": {
+    "1": {
+     "availability": {
+      "display": 3,
+      "gray": "0"
+     },
+     "name": "AAP",
+     "options": [
+      "1",
+      "2",
+      "3"
+     ],
+     "slot": "1",
+     "value": "1"
+    },
+    "3": {
+     "availability": {
+      "display": 3,
+      "gray": "0"
+     },
+     "name": "VIS",
+     "options": [
+      "1",
+      "2",
+      "3"
+     ],
+     "slot": "3",
+     "value": "1"
+    },
+    "4": {
+     "availability": {
+      "display": 3,
+      "gray": "0"
+     },
+     "name": "NOOT",
+     "options": [
+      "1",
+      "2",
+      "3"
+     ],
+     "slot": "4",
+     "value": "1"
+    },
+    "5": {
+     "availability": {
+      "display": 3,
+      "gray": "0"
+     },
+     "name": "Media Player",
+     "options": [
+      "1",
+      "2",
+      "3"
+     ],
+     "slot": "5",
+     "value": "1"
+    },
+    "6": {
+     "availability": {
+      "display": 2,
+      "gray": "0"
+     },
+     "name": "TV Audio",
+     "options": [
+      "1",
+      "2",
+      "3"
+     ],
+     "slot": "6",
+     "value": "1"
+    },
+    "7": {
+     "availability": {
+      "display": 3,
+      "gray": "0"
+     },
+     "name": "AUX1",
+     "options": [
+      "1",
+      "2",
+      "3"
+     ],
+     "slot": "7",
+     "value": "1"
+    },
+    "8": {
+     "availability": {
+      "display": 3,
+      "gray": "0"
+     },
+     "name": "MIES",
+     "options": [
+      "1",
+      "2",
+      "3"
+     ],
+     "slot": "8",
+     "value": "1"
+    },
+    "9": {
+     "availability": {
+      "display": 2,
+      "gray": "0"
+     },
+     "name": "BOOM",
+     "options": [
+      "1",
+      "2",
+      "3"
+     ],
+     "slot": "9",
+     "value": "1"
+    }
+   },
+   "input_signal_format": {
+    "1": {
+     "availability": {
+      "display": 3,
+      "gray": "0"
+     },
+     "name": "AAP",
+     "options": [
+      "1",
+      "2",
+      "4"
+     ],
+     "slot": "1",
+     "value": "2"
+    },
+    "3": {
+     "availability": {
+      "display": 3,
+      "gray": "0"
+     },
+     "name": "VIS",
+     "options": [
+      "1",
+      "2",
+      "4"
+     ],
+     "slot": "3",
+     "value": "2"
+    },
+    "4": {
+     "availability": {
+      "display": 3,
+      "gray": "0"
+     },
+     "name": "NOOT",
+     "options": [
+      "1",
+      "2",
+      "4"
+     ],
+     "slot": "4",
+     "value": "2"
+    },
+    "5": {
+     "availability": {
+      "display": 3,
+      "gray": "0"
+     },
+     "name": "Media Player",
+     "options": [
+      "1",
+      "2",
+      "4"
+     ],
+     "slot": "5",
+     "value": "2"
+    },
+    "6": {
+     "availability": {
+      "display": 2,
+      "gray": "1"
+     },
+     "name": "TV Audio",
+     "options": [
+      "1",
+      "2",
+      "4"
+     ],
+     "slot": "6",
+     "value": "1"
+    },
+    "7": {
+     "availability": {
+      "display": 3,
+      "gray": "0"
+     },
+     "name": "AUX1",
+     "options": [
+      "1",
+      "2",
+      "4"
+     ],
+     "slot": "7",
+     "value": "2"
+    },
+    "8": {
+     "availability": {
+      "display": 3,
+      "gray": "0"
+     },
+     "name": "MIES",
+     "options": [
+      "1",
+      "2",
+      "4"
+     ],
+     "slot": "8",
+     "value": "2"
+    },
+    "9": {
+     "availability": {
+      "display": 2,
+      "gray": "1"
+     },
+     "name": "BOOM",
+     "options": [
+      "1",
+      "2",
+      "4"
+     ],
+     "slot": "9",
+     "value": "1"
+    }
+   }
+  },
+  "controls": {
+   "arc": {
+    "available": true,
+    "options": {},
+    "present": true,
+    "value": "1"
+   },
+   "hdmi_control": {
+    "available": true,
+    "options": {},
+    "present": true,
+    "value": "1"
+   },
+   "hdmi_pass_through": {
+    "available": false,
+    "options": {},
+    "present": true,
+    "value": "1"
+   },
+   "hdmi_power_off_control": {
+    "available": true,
+    "options": {
+     "1": "All",
+     "2": "Video",
+     "3": "Off"
+    },
+    "present": true,
+    "value": "1"
+   },
+   "hdmi_power_saving": {
+    "available": true,
+    "options": {},
+    "present": true,
+    "value": "2"
+   },
+   "hdmi_signal_format": {
+    "available": false,
+    "options": {
+     "1": "Standard",
+     "2": "Enhanced",
+     "3": "Custom",
+     "4": "8K Enhanced"
+    },
+    "present": false,
+    "value": null
+   },
+   "osd_info": {
+    "available": true,
+    "options": {},
+    "present": true,
+    "value": "1"
+   },
+   "osd_now_playing": {
+    "available": true,
+    "options": {
+     "1": "Always On",
+     "2": "Auto Off"
+    },
+    "present": true,
+    "value": "1"
+   },
+   "osd_volume": {
+    "available": true,
+    "options": {
+     "1": "Bottom",
+     "2": "Top",
+     "3": "Off"
+    },
+    "present": true,
+    "value": "1"
+   },
+   "pass_through_source": {
+    "available": true,
+    "options": {
+     "1": "Last",
+     "2": "AAP",
+     "3": "Media Player",
+     "4": "VIS",
+     "5": "NOOT",
+     "7": "MIES"
+    },
+    "present": true,
+    "value": "1"
+   },
+   "rc_select": {
+    "available": true,
+    "options": {
+     "1": "Power On + Source",
+     "2": "Source Select Only"
+    },
+    "present": true,
+    "value": "1"
+   },
+   "smart_menu": {
+    "available": false,
+    "options": {},
+    "present": false,
+    "value": ""
+   },
+   "tv_audio_switching": {
+    "available": true,
+    "options": {},
+    "present": true,
+    "value": "1"
+   },
+   "tv_format": {
+    "available": false,
+    "options": {
+     "1": "NTSC",
+     "2": "PAL"
+    },
+    "present": false,
+    "value": null
+   }
+  },
+  "feature_flags": [],
+  "supported": true,
+  "value_lists": {}
+ }
+}

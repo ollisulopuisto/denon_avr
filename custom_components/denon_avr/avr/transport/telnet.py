@@ -1,22 +1,4 @@
-"""Asynchronous telnet transport (port 23) for the Denon AVR client library.
-
-This module owns the raw telnet socket only. It knows nothing about the protocol
-grammar; it just delivers received lines to a callback and serialises outgoing
-commands. Robustness features:
-
-* A single background manager task keeps the connection up and reconnects with
-  exponential backoff after any failure.
-* Outgoing commands go through a queue and are written with a small fixed gap,
-  because the receiver drops commands that arrive too quickly.
-* A keepalive probe is sent when the link is idle so a silently dropped socket
-  is detected quickly.
-* On every (re)connection a callback is invoked so the owner can resynchronise
-  the full state.
-
-A one-shot `async_probe` helper is also provided for deterministic discovery: it
-opens a short-lived connection, sends queries, and feeds the replies to a
-callback, entirely separate from the persistent connection above.
-"""
+"""Asynchronous telnet transport (port 23) for the Denon AVR client library."""
 
 from __future__ import annotations
 
@@ -28,6 +10,8 @@ from ..const import (
     COMMAND_SPACING,
     CONNECT_TIMEOUT,
     KEEPALIVE_INTERVAL,
+    KEEPALIVE_MISSES,
+    KEEPALIVE_TIMEOUT,
     RECONNECT_BACKOFF_MAX,
     RECONNECT_BACKOFF_MIN,
 )
@@ -51,14 +35,7 @@ async def async_probe(
     port: int = DEFAULT_PORT,
     deadline: float = 3.0,
 ) -> None:
-    """Open a short-lived telnet connection to run discovery queries.
-
-    Sends every query, then feeds each received line to `on_line` until
-    `is_complete()` returns True or `deadline` seconds pass, then closes. This is
-    separate from the persistent connection so discovery is deterministic at
-    setup time. It never raises; on any failure it simply returns and the
-    persistent resync fills the model slightly later.
-    """
+    """Open a short-lived telnet connection to run discovery queries."""
 
     try:
         reader, writer = await asyncio.wait_for(
@@ -118,8 +95,13 @@ class TelnetClient:
         self._queue: asyncio.Queue[str] = asyncio.Queue()
         self._manager_task: asyncio.Task | None = None
         self._connected = False
+        self._available = False
         self._stopped = False
-        self._last_activity = 0.0
+        self._last_received = 0.0
+        self._probe_queued = False               # our own probe is in the queue
+        self._probe_sent: float | None = None    # when the open probe went out
+        self._probes_missed = 0
+        self._received = False                   # anything since this connect
 
     @property
     def connected(self) -> bool:
@@ -159,15 +141,19 @@ class TelnetClient:
 
         backoff = RECONNECT_BACKOFF_MIN
         while not self._stopped:
+            self._received = False
             try:
                 await self._connect()
-                backoff = RECONNECT_BACKOFF_MIN
                 await self._run_session()
             except asyncio.CancelledError:
                 raise
             except (OSError, asyncio.TimeoutError) as err:
                 _LOGGER.debug("Telnet connection to %s failed: %s", self._host, err)
             finally:
+                # Only a peer that really answered resets the backoff: one that accepts and closes
+                # at once (session limit) is not hammered.
+                if self._received:
+                    backoff = RECONNECT_BACKOFF_MIN
                 await self._set_connected(False)
                 await self._close_socket()
 
@@ -182,8 +168,16 @@ class TelnetClient:
         self._reader, self._writer = await asyncio.wait_for(
             asyncio.open_connection(self._host, self._port), timeout=CONNECT_TIMEOUT
         )
-        self._last_activity = asyncio.get_running_loop().time()
-        await self._set_connected(True)
+        self._last_received = asyncio.get_running_loop().time()
+        self._probe_queued = False
+        self._probe_sent = None
+        self._probes_missed = 0
+        # Commands left from a broken session are not replayed minutes later.
+        while not self._queue.empty():
+            self._queue.get_nowait()
+        # "Connected" is the socket; entities become available with the first line, so a peer that
+        # accepts but stays silent does not make them flap.
+        self._connected = True
         _LOGGER.debug("Telnet connected to %s:%s", self._host, self._port)
         # Let the owner resynchronise the full state on (re)connect.
         if self._on_connected is not None:
@@ -221,9 +215,10 @@ class TelnetClient:
     async def _set_connected(self, connected: bool) -> None:
         """Update and broadcast the connection state."""
 
-        if connected == self._connected:
-            return
         self._connected = connected
+        if connected == self._available:
+            return
+        self._available = connected
         if self._on_availability is not None:
             self._on_availability(connected)
 
@@ -242,9 +237,13 @@ class TelnetClient:
                 raise ConnectionError("Telnet stream closed")
             except asyncio.LimitOverrunError as err:
                 # The oversized data stays in the buffer, so retrying would spin.
-                # Treat it as a broken stream and let the manager reconnect.
                 raise ConnectionError("Telnet line exceeded read buffer") from err
-            self._last_activity = asyncio.get_running_loop().time()
+            self._last_received = asyncio.get_running_loop().time()
+            self._probe_sent = None
+            self._probes_missed = 0
+            if not self._received:
+                self._received = True
+                await self._set_connected(True)
             self._deliver(raw)
 
     def _deliver(self, raw: bytes) -> None:
@@ -263,14 +262,26 @@ class TelnetClient:
             data = command.encode("utf-8") + _TERMINATOR
             self._writer.write(data)
             await self._writer.drain()
-            self._last_activity = asyncio.get_running_loop().time()
+            if command == _KEEPALIVE_COMMAND and self._probe_queued:
+                self._probe_queued = False
+                self._probe_sent = asyncio.get_running_loop().time()
             await asyncio.sleep(COMMAND_SPACING)
 
     async def _keepalive_loop(self) -> None:
-        """Send a light probe when the link has been idle for too long."""
+        """Probe an idle link, and give it up when the probes stay unanswered."""
 
+        loop = asyncio.get_running_loop()
         while True:
-            await asyncio.sleep(KEEPALIVE_INTERVAL / 2)
-            idle = asyncio.get_running_loop().time() - self._last_activity
-            if idle >= KEEPALIVE_INTERVAL:
+            await asyncio.sleep(min(KEEPALIVE_INTERVAL, KEEPALIVE_TIMEOUT) / 2)
+            now = loop.time()
+            idle = now - self._last_received
+            if idle >= KEEPALIVE_INTERVAL + (KEEPALIVE_MISSES + 2) * KEEPALIVE_TIMEOUT:
+                raise ConnectionError("Telnet link is stuck")   # not even the probe got out
+            if self._probe_sent is not None and now - self._probe_sent >= KEEPALIVE_TIMEOUT:
+                self._probe_sent = None
+                self._probes_missed += 1
+                if self._probes_missed >= KEEPALIVE_MISSES:
+                    raise ConnectionError("Telnet peer does not answer")
+            if self._probe_sent is None and not self._probe_queued and idle >= KEEPALIVE_INTERVAL:
+                self._probe_queued = True
                 await self._queue.put(_KEEPALIVE_COMMAND)

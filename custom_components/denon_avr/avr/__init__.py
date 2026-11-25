@@ -1,34 +1,40 @@
-"""Own, dependency light client library for Denon AVR receivers.
-
-This subpackage talks to the receiver directly over telnet (primary, with push)
-and the goform HTTP API (discovery and reconciliation). It has no Home Assistant
-dependency so it can be reused or published as a standalone library.
-
-The public entry point is DenonAvrDevice. Everything device specific (names,
-ranges, options, which controls exist) is discovered from the receiver at
-runtime; the only fixed protocol grammar lives in protocol_profile.json.
-"""
+"""HA-free client library for Denon/Marantz receivers."""
 
 from __future__ import annotations
 
 from .device import DenonAvrDevice
 from .models import (
+    Availability,
     AvrState,
     ChannelDescriptor,
-    Discovery,
+    CollectionItem,
     DeviceInfo,
+    Discovery,
     SourceDescriptor,
     ZoneDescriptor,
     ZoneState,
 )
+from .protocol.channel_map import ChannelMap, decode as decode_channels
+from .protocol.eq_doc import band_tag as eq_band_tag
+from .protocol.eq_doc import channel_options as eq_channel_options
+from .protocol.profile import ControlSpec, ProtocolProfile, load_profile
 
 __all__ = [
-    "DenonAvrDevice",
+    "Availability",
     "AvrState",
     "ChannelDescriptor",
-    "Discovery",
+    "CollectionItem",
+    "ControlSpec",
+    "DenonAvrDevice",
     "DeviceInfo",
+    "Discovery",
+    "ProtocolProfile",
     "SourceDescriptor",
     "ZoneDescriptor",
     "ZoneState",
+    "ChannelMap",
+    "decode_channels",
+    "eq_band_tag",
+    "eq_channel_options",
+    "load_profile",
 ]

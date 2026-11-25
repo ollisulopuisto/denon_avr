@@ -4,7 +4,7 @@
     "step": {
       "user": {
         "title": "Denon AVR",
-        "description": "Enter the IP address of your Denon receiver. The name and capabilities are read from the device automatically.",
+        "description": "Enter the IP address of your Denon or Marantz receiver. The name and capabilities are read from the device automatically.",
         "data": {
           "host": "IP address"
         }
@@ -15,7 +15,7 @@
       },
       "reconfigure": {
         "title": "Denon AVR",
-        "description": "Update the IP address of your Denon receiver.",
+        "description": "Update the IP address of your Denon or Marantz receiver.",
         "data": {
           "host": "IP address"
         }
@@ -44,7 +44,29 @@
         "name": "Volume"
       },
       "input_signal": {
-        "name": "Input Signal"
+        "name": "Input Signal",
+        "state": {
+          "analog": "Analog",
+          "pcm": "PCM",
+          "dolby_digital": "Dolby Digital",
+          "dolby_truehd_or_dd_plus": "Dolby TrueHD or Dolby Digital Plus",
+          "dolby_truehd_or_atmos": "Dolby TrueHD or Dolby Atmos",
+          "dts": "DTS",
+          "dts_hd_high_resolution": "DTS-HD High Resolution",
+          "dts_hd_master_audio": "DTS-HD Master Audio",
+          "no_or_unknown_signal": "No or unknown signal",
+          "pcm_zero": "PCM Zero",
+          "mp3": "MP3",
+          "aac": "AAC",
+          "flac": "FLAC",
+          "dolby_atmos": "Dolby Atmos",
+          "vorbis": "Vorbis"
+        },
+        "state_attributes": {
+          "code": {
+            "name": "Code"
+          }
+        }
       },
       "sample_rate": {
         "name": "Sample Rate"
@@ -57,6 +79,154 @@
       },
       "mode_info": {
         "name": "Mode Info"
+      },
+      "amp_mode": {
+        "name": "Amplifier mode",
+        "state": {
+          "9_1ch": "9.1ch",
+          "7_1ch_zone2": "7.1ch + ZONE2",
+          "7_1ch_zone3": "7.1ch + ZONE3",
+          "7_1ch_zone2_3_mono": "7.1ch + ZONE2/3-MONO",
+          "7_1ch_front_b": "7.1ch + Front B",
+          "7_1ch_bi_amp": "7.1ch (Bi-Amp)",
+          "11_1ch": "11.1ch",
+          "5_1ch_zone2_3": "5.1ch + ZONE2/3",
+          "5_1ch_bi_amp_zone2": "5.1ch (Bi-Amp) + ZONE2",
+          "5_1ch_full_bi_amp": "5.1ch Full Bi-Amp",
+          "custom": "Custom",
+          "preamplifier": "Pre-amplifier",
+          "5_1ch_front_lcr_bi_amp": "5.1ch (Front LCR Bi-Amp)"
+        },
+        "state_attributes": {
+          "mode_id": {
+            "name": "Mode id"
+          },
+          "preamplifier": {
+            "name": "Pre-amplifier only"
+          }
+        }
+      },
+      "subwoofer_mode": {
+        "name": "Subwoofer directional mode",
+        "state": {
+          "standard": "Standard",
+          "directional": "Directional"
+        }
+      },
+      "subwoofer_layout": {
+        "name": "Subwoofer layout",
+        "state": {
+          "left_right": "Left/Right",
+          "front_rear": "Front/Rear",
+          "fl_fr_rear": "FL/FR/Rear",
+          "fl_fr_rl_rr": "FL/FR/RL/RR"
+        }
+      },
+      "speaker_layout_protocol": {
+        "name": "Speaker output (height/wide)"
+      },
+      "video_input": {
+        "name": "Video Input"
+      },
+      "video_output": {
+        "name": "Video Output"
+      },
+      "hdr_input": {
+        "name": "HDR Input"
+      },
+      "hdr_output": {
+        "name": "HDR Output"
+      },
+      "input_channels": {
+        "name": "Input Channels",
+        "state_attributes": {
+          "channels": {
+            "name": "Channels"
+          }
+        }
+      },
+      "active_speakers": {
+        "name": "Active Speakers",
+        "state_attributes": {
+          "channels": {
+            "name": "Channels"
+          }
+        }
+      },
+      "speaker_connection_front": {
+        "name": "Front connection",
+        "state": {
+          "none": "None",
+          "speaker_and_preout": "Speaker and pre-out",
+          "preout_only": "Pre-out only"
+        }
+      },
+      "speaker_connection_center": {
+        "name": "Center connection",
+        "state": {
+          "none": "None",
+          "speaker_and_preout": "Speaker and pre-out",
+          "preout_only": "Pre-out only"
+        }
+      },
+      "speaker_connection_surround": {
+        "name": "Surround connection",
+        "state": {
+          "none": "None",
+          "speaker_and_preout": "Speaker and pre-out",
+          "preout_only": "Pre-out only"
+        }
+      },
+      "speaker_connection_surround_back": {
+        "name": "Surround back connection",
+        "state": {
+          "none": "None",
+          "speaker_and_preout": "Speaker and pre-out",
+          "preout_only": "Pre-out only"
+        }
+      },
+      "speaker_connection_front_wide": {
+        "name": "Front wide connection",
+        "state": {
+          "none": "None",
+          "speaker_and_preout": "Speaker and pre-out",
+          "preout_only": "Pre-out only"
+        }
+      },
+      "speaker_connection_height_front": {
+        "name": "Height front connection",
+        "state": {
+          "none": "None",
+          "speaker_and_preout": "Speaker and pre-out",
+          "preout_only": "Pre-out only"
+        }
+      },
+      "speaker_connection_height_middle": {
+        "name": "Height middle connection",
+        "state": {
+          "none": "None",
+          "speaker_and_preout": "Speaker and pre-out",
+          "preout_only": "Pre-out only"
+        }
+      },
+      "speaker_connection_height_rear": {
+        "name": "Height rear connection",
+        "state": {
+          "none": "None",
+          "speaker_and_preout": "Speaker and pre-out",
+          "preout_only": "Pre-out only"
+        }
+      },
+      "speaker_connection_top_surround": {
+        "name": "Top surround connection",
+        "state": {
+          "none": "None",
+          "speaker_and_preout": "Speaker and pre-out",
+          "preout_only": "Pre-out only"
+        }
+      },
+      "network_module": {
+        "name": "Network Module"
       }
     },
     "select": {
@@ -179,6 +349,90 @@
       },
       "eq_channel": {
         "name": "Channel"
+      },
+      "input_signal_format": {
+        "name": "{input} 4K/8K signal format",
+        "state": {
+          "standard": "Standard",
+          "enhanced": "Enhanced",
+          "custom": "Custom",
+          "8k_enhanced": "8K Enhanced"
+        }
+      },
+      "input_hdcp": {
+        "name": "{input} HDCP",
+        "state": {
+          "auto": "Auto",
+          "hdcp_1_4": "1.4",
+          "hdcp_2_3": "2.3",
+          "custom": "Custom"
+        }
+      },
+      "current_input_signal_format": {
+        "name": "4K/8K signal format (current input)",
+        "state": {
+          "standard": "Standard",
+          "enhanced": "Enhanced",
+          "custom": "Custom",
+          "8k_enhanced": "8K Enhanced"
+        },
+        "state_attributes": {
+          "input": {
+            "name": "Input"
+          },
+          "slot": {
+            "name": "Slot"
+          }
+        }
+      },
+      "current_input_hdcp": {
+        "name": "HDCP (current input)",
+        "state": {
+          "auto": "Auto",
+          "hdcp_1_4": "1.4",
+          "hdcp_2_3": "2.3",
+          "custom": "Custom"
+        },
+        "state_attributes": {
+          "input": {
+            "name": "Input"
+          },
+          "slot": {
+            "name": "Slot"
+          }
+        }
+      },
+      "speaker_layout_assign": {
+        "name": "Speaker layout (staged)",
+        "state": {
+          "9_1ch": "9.1ch",
+          "7_1ch_zone2": "7.1ch + ZONE2",
+          "7_1ch_zone3": "7.1ch + ZONE3",
+          "7_1ch_zone2_3_mono": "7.1ch + ZONE2/3-MONO",
+          "7_1ch_front_b": "7.1ch + Front B",
+          "7_1ch_bi_amp": "7.1ch (Bi-Amp)",
+          "11_1ch": "11.1ch",
+          "5_1ch_zone2_3": "5.1ch + ZONE2/3",
+          "5_1ch_bi_amp_zone2": "5.1ch (Bi-Amp) + ZONE2",
+          "5_1ch_full_bi_amp": "5.1ch Full Bi-Amp",
+          "custom": "Custom",
+          "preamplifier": "Pre-amplifier",
+          "5_1ch_front_lcr_bi_amp": "5.1ch (Front LCR Bi-Amp)"
+        },
+        "state_attributes": {
+          "pending": {
+            "name": "Change pending"
+          },
+          "receiver_mode": {
+            "name": "Mode on the receiver"
+          },
+          "remeasure_room_correction": {
+            "name": "Re-measure room correction"
+          }
+        }
+      },
+      "speaker_preset": {
+        "name": "Speaker preset"
       }
     },
     "switch": {
@@ -302,7 +556,69 @@
       },
       "eq_default": {
         "name": "Default"
+      },
+      "speaker_layout_apply": {
+        "name": "Apply speaker layout"
+      },
+      "speaker_layout_discard": {
+        "name": "Discard speaker layout change"
+      },
+      "speaker_layout_restore": {
+        "name": "Restore speaker layout"
       }
+    }
+  },
+  "device": {
+    "audio": {
+      "name": "{model} Audio"
+    },
+    "video": {
+      "name": "{model} Video"
+    },
+    "picture": {
+      "name": "{model} Picture"
+    },
+    "speakers": {
+      "name": "{model} Speakers"
+    },
+    "eq": {
+      "name": "{model} Graphic EQ"
+    },
+    "inputs": {
+      "name": "{model} Inputs"
+    }
+  },
+  "exceptions": {
+    "input_option_refused": {
+      "message": "The receiver does not allow {option} for {input} right now."
+    },
+    "speaker_layout_refused": {
+      "message": "The receiver does not allow speaker layout {option}."
+    },
+    "speaker_layout_not_applied": {
+      "message": "The receiver did not confirm the speaker layout change. If it changed anything, Restore speaker layout puts it back."
+    },
+    "web_setting_not_applied": {
+      "message": "The receiver did not confirm the setting."
+    },
+    "speaker_layout_not_restored": {
+      "message": "Not everything could be restored: {positions}. Check it on the receiver."
+    },
+    "speaker_layout_restore_unavailable": {
+      "message": "The receiver did not answer or is busy; nothing was restored."
+    },
+    "speaker_layout_restore_stale": {
+      "message": "The speaker preset or layout was changed on the receiver since; nothing was restored."
+    }
+  },
+  "issues": {
+    "speaker_layout_changed": {
+      "title": "Speaker layout changed other choices",
+      "description": "Applying the speaker layout also changed layout positions {positions}. The receiver does not put these back when you go back. Press Restore speaker layout to put everything back (also front A/B), or Discard speaker layout change to keep it and dismiss this notice. The restore point is lost when Home Assistant restarts or the integration reloads."
+    },
+    "speaker_layout_kept": {
+      "title": "Some choices were left as you changed them",
+      "description": "Restoring the speaker layout left {positions} alone, because they were changed after the layout was applied. Check them on the receiver."
     }
   }
 }

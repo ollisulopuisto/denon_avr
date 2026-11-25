@@ -1,11 +1,4 @@
-"""Number platform for the Denon AVR integration.
-
-Creates adjustable number entities for the level style controls the receiver
-advertises (bass, treble, subwoofer level, LFE), the sleep timer, and one per
-configured channel volume trim. Ranges come from the receiver where it publishes
-them; only where it does not (LFE, sleep timer) does the profile supply a
-protocol defined range.
-"""
+"""Number platform for the Denon AVR integration."""
 
 from __future__ import annotations
 
@@ -19,17 +12,16 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from .avr import graphic_eq
-from .avr.profile import ControlSpec
+from .avr import ControlSpec, eq_band_tag
 from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
-from .entity import DenonAvrEntity
+from .entity import DenonAvrEntity, setup_catalogue_platform
 from .helpers import control_sub_device
 
 # The control kinds that map to a number entity.
 _NUMBER_KINDS = {"level", "signed_int", "minutes", "integer", "centered"}
 
-# Map the profile's plain wire unit tokens to the canonical Home Assistant unit
-# constants (the profile stays HA-independent; this HA layer does the mapping).
+# Map the profile's plain wire unit tokens to the canonical Home Assistant unit constants (the
+# profile stays HA-independent; this HA layer does the mapping).
 _UNIT_TOKENS = {"ms": UnitOfTime.MILLISECONDS, "m": UnitOfLength.METERS}
 
 
@@ -38,40 +30,16 @@ async def async_setup_entry(
     entry: DenonAvrConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
-    """Create the adjustable number entities discovered for this receiver."""
+    """Create the number entities the entity catalogue lists for this receiver."""
 
     coordinator = entry.runtime_data
-    device = coordinator.device
-    discovery = device.discovery
-    entities: list[NumberEntity] = []
-
-    for spec in device.profile.controls.values():
-        if spec.kind not in _NUMBER_KINDS:
-            continue
-        if spec.scope == "feature" and not discovery.supports(spec.feature or ""):
-            continue
-        entities.append(DenonAvrNumber(coordinator, spec))
-
-    # One trim per known channel. Channels that the receiver reports as
-    # configured (from SSSPC) are enabled; the rest are registered but disabled
-    # by default so they stay out of the way yet can be enabled from the UI.
-    configured = discovery.configured_channels
-    codes = [c.code for c in discovery.channels] or sorted(
-        coordinator.data.channel_levels
-    )
-    for code in codes:
-        enabled = (not configured) or code in configured
-        entities.append(DenonAvrChannelTrim(coordinator, code, enabled))
-        entities.append(DenonAvrChannelDistance(coordinator, code, enabled))
-
-    # One number per manual graphic-EQ band, on the EQ sub-device, when the
-    # receiver has a graphic EQ this profile can drive. The bands reflect the
-    # channel picked by the EQ Channel select.
-    if device.graphic_eq.supported:
-        for label in device.graphic_eq.grammar.get("bands", []):
-            entities.append(DenonAvrEqBand(coordinator, label))
-
-    async_add_entities(entities)
+    factories = {
+        "control": lambda e: DenonAvrNumber(coordinator, e.params["spec"]),
+        "channel_trim": lambda e: DenonAvrChannelTrim(coordinator, e.params["code"], e.enabled_default),
+        "channel_distance": lambda e: DenonAvrChannelDistance(coordinator, e.params["code"], e.enabled_default),
+        "eq_band": lambda e: DenonAvrEqBand(coordinator, e.params["label"]),
+    }
+    setup_catalogue_platform(coordinator, "number", factories, async_add_entities)
 
 
 class DenonAvrNumber(DenonAvrEntity, NumberEntity):
@@ -91,9 +59,6 @@ class DenonAvrNumber(DenonAvrEntity, NumberEntity):
         if spec.kind == "minutes":
             self._attr_native_unit_of_measurement = UnitOfTime.MINUTES
         elif spec.kind == "integer":
-            # A plain integer control uses whatever unit the profile gives (or
-            # none), for example milliseconds for the audio delay, surfaced as the
-            # canonical HA unit constant where known.
             unit = spec.get("unit")
             self._attr_native_unit_of_measurement = _UNIT_TOKENS.get(unit, unit)
         elif spec.kind == "centered":
@@ -133,8 +98,8 @@ class DenonAvrChannelTrim(DenonAvrEntity, NumberEntity):
             coordinator, f"number_channel_trim_{code}", sub_device="speakers"
         )
         self._code = code
-        # Channels the receiver has not configured are registered but disabled by
-        # default; the user can still enable them from the UI.
+        # Channels the receiver has not configured are registered but disabled by default; the
+        # user can still enable them from the UI.
         self._attr_entity_registry_enabled_default = enabled
         discovery = coordinator.device.discovery
         self._attr_name = f"{discovery.channel_name(code)} Trim"
@@ -196,12 +161,10 @@ def _resolve_bounds(device, spec: ControlSpec):
 
 
 class DenonAvrEqBand(DenonAvrEntity, NumberEntity):
-    """One manual graphic-EQ band gain in dB, shown as a slider (fader).
+    """One manual graphic-EQ band gain in dB, shown as a slider (fader)."""
 
-    The value applies to the channel currently picked by the EQ Channel select
-    (or to all/LR depending on the speaker-selection mode). Read and written via
-    the setup config API; the range comes from the fixed graphic-EQ grammar.
-    """
+    _web_backed = True   # setup web interface, not telnet
+    _eq_gated = True
 
     _attr_entity_category = EntityCategory.CONFIG
     _attr_native_unit_of_measurement = "dB"
@@ -209,10 +172,8 @@ class DenonAvrEqBand(DenonAvrEntity, NumberEntity):
 
     def __init__(self, coordinator: DenonAvrCoordinator, label: str) -> None:
         grammar = coordinator.device.graphic_eq.grammar
-        self._tag = graphic_eq.band_tag(grammar, label)
+        self._tag = eq_band_tag(grammar, label)
         super().__init__(coordinator, f"number_eq_{self._tag}", sub_device="eq")
-        # The device is already named "... Graphic EQ", so the band name is just
-        # the frequency (avoids a doubled "Graphic EQ EQ 63 Hz").
         self._attr_name = label
         self._attr_native_min_value = float(grammar.get("min_db", -20.0))
         self._attr_native_max_value = float(grammar.get("max_db", 6.0))

@@ -1,9 +1,4 @@
-"""Binary sensor platform for the Denon AVR integration.
-
-Exposes the telnet connectivity as a diagnostic connectivity binary sensor. It
-reports the raw link state and therefore stays functional even when the other
-entities are unavailable because the link is down.
-"""
+"""Binary sensor platform for the Denon AVR integration."""
 
 from __future__ import annotations
 
@@ -16,7 +11,7 @@ from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .coordinator import DenonAvrConfigEntry, DenonAvrCoordinator
-from .entity import DenonAvrEntity
+from .entity import DenonAvrEntity, setup_catalogue_platform
 
 
 async def async_setup_entry(
@@ -24,9 +19,11 @@ async def async_setup_entry(
     entry: DenonAvrConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
-    """Create the connectivity binary sensor."""
+    """Create the binary sensors the entity catalogue lists for this receiver."""
 
-    async_add_entities([DenonAvrConnectivitySensor(entry.runtime_data)])
+    coordinator = entry.runtime_data
+    factories = {"connectivity": lambda e: DenonAvrConnectivitySensor(coordinator)}
+    setup_catalogue_platform(coordinator, "binary_sensor", factories, async_add_entities)
 
 
 class DenonAvrConnectivitySensor(DenonAvrEntity, BinarySensorEntity):

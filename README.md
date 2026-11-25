@@ -1,24 +1,11 @@
 # Denon AVR
 
-> **About this fork.** This is a fork of [LaserGuruGuy/denon_avr](https://github.com/LaserGuruGuy/denon_avr); all credit for the integration goes there. The fork adds a few things, each tested on a Denon AVR-X3600H. They are offered upstream, but the repository doesn't accept outside pull requests, so they live here:
->
-> | Branch | What it adds |
-> |---|---|
-> | [`pr/sound-modes`](https://github.com/ollisulopuisto/denon_avr/tree/pr/sound-modes) | Sound modes are selected by their entry in the receiver's own list over HTTP (`AppCommand0300.xml`), with the telnet token as fallback. Fixes modes whose telnet token is unknown or doesn't exist (DTS Virtual:X on the X3600H), and duplicate entries in the sound mode select. |
-> | [`pr/new-controls`](https://github.com/ollisulopuisto/denon_avr/tree/pr/new-controls) | Tuner (frequency, station name, band, tuning mode, preset), IMAX (mode, audio settings, filters, subwoofer), buttons for tuner step/preset and saving Quick Select 1–4, auto-standby, and power-on volume (Last / Mute / level). Each appears only if the receiver advertises it. |
-> | [`pr/x3600h-tokens`](https://github.com/ollisulopuisto/denon_avr/tree/pr/x3600h-tokens) | Telnet tokens the AVR-X3600H actually accepts for Dolby Surround, DTS Neural:X and Multi In + DSur (used as fallback), and a "None" option for the surround speaker size so Dolby Surround can play on the front channels only. |
-> | [`pr/log-unhandled`](https://github.com/ollisulopuisto/denon_avr/tree/pr/log-unhandled) | Telnet replies the parser doesn't apply are logged at debug level. |
-> | [`pr/test-harness`](https://github.com/ollisulopuisto/denon_avr/tree/pr/test-harness) | A pytest harness for the protocol library (no Home Assistant needed: `pip install -r requirements_test.txt && pytest tests`). |
-> | [`combined`](https://github.com/ollisulopuisto/denon_avr/tree/combined) | All of the above together. |
->
-> Not verified on the receiver yet: IMAX subwoofer output and the tuner station name. To try it, copy `custom_components/denon_avr` from the [`combined`](https://github.com/ollisulopuisto/denon_avr/tree/combined) branch into your Home Assistant `custom_components` folder and restart. This `main` branch is otherwise the same as upstream. A daily GitHub Action merges upstream into every branch above, runs the tests and pushes only what merges cleanly and passes; anything else is reported as an issue in this fork.
-
 [![GitHub Release][releases-shield]][releases]
 [![Maintainer][maintainer-shield]][maintainer]
 [![HACS Custom][hacs-shield]][hacs-url]
 
 This is a HACS custom integration for Denon (HEOS generation) AV receivers such
-as the AVR-X3600H.
+as the AVR-X3600H and AVC-X3900H.
 
 
 ## Features
@@ -29,11 +16,19 @@ as the AVR-X3600H.
   channels, sound modes and their genre groups, quick select names, feature
   availability, control ranges and option labels are all read from the receiver
   at runtime. The only fixed data is the Denon wire grammar.
-- **Telnet, HTTP** Telnet (port 23) provides the full state, real time push and
+- **Telnet first.** Telnet (port 23) provides the full state, real time push and
   the bulk of control; HTTP (port 8080) provides discovery and a periodic
-  reconciliation poll. A few settings that have no telnet command (graphic‑EQ
-  bands, HDMI/OSD/format setup, amp assign) are read and written over the setup
-  config API (HTTPS 10443); everything else is telnet.
+  reconciliation poll. Settings that have no telnet command (graphic‑EQ bands,
+  HDMI/OSD/format setup, per input settings, amp assign or speaker layout) are
+  read and written through the receiver's own setup web interface.
+- **Two generations of the setup interface.** HTTPS on port 10443 (seen on the
+  AVR‑X3600H) and the newer "Web Control" over plain HTTP on port 11080 (seen on
+  the AVC‑X3900H). The interface is found automatically and what it offers is read
+  from it; nothing is tied to a model name.
+- **Follows your setup live.** Speakers, subwoofers, presets and inputs belong to
+  your own setup. Entities appear or become unavailable with it, and changes made
+  on the receiver show up right away (settings that only exist in the setup web
+  interface: within a minute).
 - **Stability** Auto reconnect with backoff, keepalive probe, command queue
   with inter command spacing, teardown on unload.
 
@@ -63,23 +58,30 @@ towards the receiver (server). To let the two communicate through a router or
 VLAN firewall, allow the Home Assistant host to reach the receiver on these
 ports. Nothing needs to be opened towards the internet.
 
-| Port | Protocol | Purpose                                                                                                                                                                               | Ordinality |
-|------|----------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------|
-| **23/tcp** | Telnet | Primary control channel and real‑time push: power, volume, mute, source, sound modes and all state updates                                                                            | **Required** |
-| **8080/tcp** | HTTP (goform) | Discovery (`Deviceinfo.xml`) and the reconciliation poll (`…StatusLite.xml`)                                                                                                          | **Required** |
-| **60006/tcp** | HTTP (UPnP/AIOS) | Device description read once at setup for firmware version and serial number                                                                                                          | Optional (degrades gracefully) |
-| **1900/udp** | SSDP (multicast) | Automatic discovery of the receiver on the LAN                                                                                                                                        | Optional (auto‑discovery only) |
-| **1256/tcp** | Length‑framed JSON | Not currently used (reserved for future use)                                                                                                                                          | Unused |
-| **1255/tcp** | HEOS CLI | Now‑playing media, album art and transport (play/pause/next) for network sources                                                                                                      | Optional (degrades gracefully) |
-| **10443/tcp** | HTTPS (setup config) | Graphic‑EQ per‑band values, the Video setup menu (HDMI setup/CEC, ARC, OSD, TV/4K format) and Amp Assign — settings with no telnet token, read/write (non‑disruptive; self‑signed cert) | Optional (graphic EQ + video + amp assign) |
+| Port | Protocol | Purpose | Ordinality |
+|------|----------|---------|------------|
+| **23/tcp** | Telnet | Primary control channel and real‑time push: power, volume, mute, source, sound modes, speaker setup and all state updates | **Required** |
+| **8080/tcp** | HTTP (goform) | Discovery (`Deviceinfo.xml`) and the reconciliation poll (`…StatusLite.xml`) | **Required** |
+| **1900/udp** | SSDP (multicast) | Automatic discovery of the receiver on the LAN (Home Assistant's own SSDP finds Denon and Marantz receivers and offers them; without it, add the receiver by IP address) | Optional (auto‑discovery only) |
+| **60006/tcp** | HTTP (UPnP/AIOS) | Device description read once at setup for firmware version and serial number | Optional (degrades gracefully) |
+| **1255/tcp** | HEOS CLI | Now‑playing media, album art and transport (play/pause/next) for network sources | Optional (degrades gracefully) |
+| **1256/tcp** | Length‑framed JSON | Not currently used (reserved for future use) | Unused |
+| **80/tcp, 443/tcp** | HTTP/HTTPS | Only to find the setup web interface below: the receiver redirects to it, and the redirect is followed on the same host | Optional (10443 and 11080 are tried directly otherwise) |
+| **10443/tcp** | HTTPS (setup config) | Setup web interface of the older generation (seen on the AVR‑X3600H): graphic‑EQ per‑band values, Video setup menu (HDMI setup/CEC, ARC, OSD, TV/4K format) and Amp Assign: settings with no telnet token, read/write (self‑signed certificate) | Optional (graphic EQ, video, speakers) |
+| **11080/tcp** | HTTP (setup config) | The same for the Web Control generation (seen on the AVC‑X3900H), plus per input 4K/8K format and HDCP, speaker layout and the lists of crossover and LFE frequencies | Optional (graphic EQ, video, inputs, speakers) |
+
+Without the setup web interface everything on telnet keeps working; the web based
+entities are unavailable or absent.
 
 Notes:
 
 - The receiver accepts **multiple concurrent telnet (23) connections** and
   broadcasts events to all of them, so this integration coexists with the Denon
   app and other controllers.
-- The HEOS (1255) and setup‑config (10443) channels are only opened when the
-  receiver advertises the matching capability; both are non‑disruptive.
+- The HEOS (1255) and setup web interface channels are optional and do not affect
+  control.
+- On the Web Control generation the setup interface is **plain HTTP without login**,
+  so keep the receiver on a trusted network.
 
 ## What you get
 
@@ -87,11 +89,12 @@ Settings are organized into **sub‑devices that mirror the receiver's own setup
 menus**, so a large control set stays tidy instead of crowding one page. The main
 receiver device keeps the day‑to‑day controls (player, power, source, sound mode,
 quick select, input mode, front‑display dimmer); the **Audio**, **Video**,
-**Picture**, **Speakers** and **Graphic EQ** sub‑devices each carry their own
-part of the setup. **Picture** holds the image‑quality tuning (a coherent group,
+**Picture**, **Speakers**, **Inputs** and **Graphic EQ** sub‑devices each carry
+their own part of the setup. Names are translated (English and Dutch). **Picture** holds the image‑quality tuning (a coherent group,
 split off from Video like the Graphic EQ is split off from Audio); **Video** holds
 the output/connectivity settings (video mode, HDMI setup, on‑screen display, TV/4K
-signal format). The lists below are grouped by entity type; each entity lands on
+signal format). **Inputs** holds the settings per input. Which of the entities below
+you get depends on what your receiver and your setup report. The lists are grouped by entity type; each entity lands on
 the sub‑device its setting belongs to.
 
 - **Media player** per zone (main + zone 2 where present): power, volume, mute,
@@ -108,13 +111,16 @@ the sub‑device its setting belongs to.
   Scale, Volume Limit, Muting Level, a per speaker group crossover frequency (Hz)
   plus a Crossover Speaker Selection (All / Individual) that gates them against a
   single All Crossover,
-  a per speaker group size (Large/Small), Front Speaker (A/B/A+B), Amp Assign
-  (the amp‑assignment mode — options are read from the receiver per its amp type,
-  e.g. 7.1ch + Front B / 9.1ch / Bi‑Amp / Zone2), the amp‑assign Floor Layout and
-  Height Speakers (options read from the receiver), and LPF for LFE (80–250 Hz).
+  a per speaker group size (Large/Small, where the receiver reports a size), number
+  of subwoofers, Front Speaker (A/B/A+B) and LPF for LFE. Depending on the
+  generation: **Amp Assign** with Floor Layout and Height Speakers, or **Speaker
+  Layout** (see below). **Speaker Preset** 1/2 where the receiver has it. Options
+  such as crossover frequencies come from the receiver where it offers them.
   On **Video**: HDMI Power‑Off Control,
   Pass‑Through Source, RC Select, On‑Screen Volume position, Now‑Playing display,
-  4K Signal Format, TV Format (NTSC/PAL). On **Picture**: Noise Reduction. Each
+  4K Signal Format (for all inputs, older generation), TV Format (NTSC/PAL), and the
+  format and HDCP of the current input (Web Control generation). On **Inputs**: 4K/8K
+  Signal Format and HDCP per input (Web Control generation). On **Picture**: Noise Reduction. Each
   only when the receiver advertises it.
 - **Switches**: Main Power, Main Mute, Tone Control, Dynamic EQ, Loudness
   Management, Cinema EQ, Subwoofer, Speaker Virtualizer, Center Spread,
@@ -132,8 +138,18 @@ the sub‑device its setting belongs to.
   the receiver at once. **Copy Curve** seeds the manual EQ from the reference
   curve, and **Default** resets the channel to flat. See the equalizer card
   recipe below.
-- **Sensors** (diagnostic): sample rate, decoder, audio format, input signal,
-  mode info, sound mode, and volume (dB).
+- **Speaker layout** (Web Control generation): choosing a layout only prepares it;
+  **Apply** writes it. Applying also resets other choices on the receiver (surround
+  back, height speakers, front A/B); a repair notice then lists what changed and
+  **Restore** puts it back as it was.
+- **Sensors** (diagnostic): sample rate, decoder, audio format, input signal (named
+  where the code is known, else `code_<nn>`),
+  mode info, sound mode, volume (dB), amplifier mode, effect speakers, the
+  subwoofer directional mode and layout (with two or more subwoofers), video and HDR
+  in and out (as the receiver words it; `---` = none; HDR values not tested on
+  hardware), the active input channels and speakers (e.g. 5.1.4; `+n` counts positions without a
+  known name, object audio shows its bed), and how each
+  speaker position is connected (Web Control generation).
 - **Binary sensor**: telnet connectivity.
 
 Per channel trims and distances, and per group crossovers and sizes, for
@@ -142,9 +158,8 @@ default; enable them from the entity settings if you need them.
 
 Speaker crossover frequencies are a discrete, non-uniform set, so they are
 exposed as a select rather than a stepped number. The current crossover per group
-is read over telnet; the selectable frequencies are the fixed Denon
-crossover grid (a protocol constant, verified live), the same as every other
-enum's values.
+is read over telnet; the selectable frequencies come from the receiver where it
+lists them (including Full Range), else from the fixed Denon crossover grid.
 
 ### Graphic equalizer card
 
@@ -180,11 +195,17 @@ cards:
 
 Pick a channel, adjust the nine faders, then press **Apply** to write that
 channel's curve. Editing requires MultEQ **off** and the graphic EQ **enabled**
-(both are entities above). Entity ids follow your device name — adjust the prefix
-to match yours.
+(both are entities above). While the receiver grays its equalizer menu out, these
+entities are unavailable. Entity ids follow your device and language: the example is
+from an English AVR‑X3600H, so replace them with your own.
 
 ## Notes and limitations
 
+- **Breaking change in 1.2.2:** the state of the input signal sensor is now a name
+  (`pcm`, `dolby_digital`, ...) instead of the raw code (`02`, `03`, ...). Automations
+  can use the attribute `code`, which keeps the raw code.
+- The speaker layout restore point is kept in memory: a restart of Home Assistant or a
+  reload of the integration drops it.
 - Some parameters only apply to certain signals or sound modes (for example
   Dynamic Compression needs a Dolby/DTS bitstream, Video Mode needs an active
   video signal, Equalizer settings can not be altered when MultEQ is not Off).
@@ -192,8 +213,8 @@ to match yours.
   context; this is expected Denon behavior, not an integration bug.
 - Speaker distances and crossovers are supported over telnet (read/write). Other
   advanced one time setup settings that the receiver exposes only through its web
-  UI's configuration API (full speaker layout, HDMI Control/CEC, per input
-  assignment, some zone defaults) are not implemented.
+  UI's configuration API (custom speaker layouts, input assignment, some zone
+  defaults) are not implemented.
 - Room correction calibration remains a job for the receiver's own setup tooling.
 
 ## Testing
@@ -202,15 +223,16 @@ Protocol behavior was verified live against the following.
 
 | Component                    | Version |
 |------------------------------|---------|
-| Receiver                     | Denon AVR-X3600H |
+| Receiver                     | Denon AVR-X3600H, AVC-X3900H |
 | Receiver hardware generation | `avr-x-2016` |
-| Receiver firmware            | 3.88.614 |
-| Home Assistant Core          | 2026.7.0 |
-| Python                       | 3.13 |
+| Receiver firmware            | AVR-X3600H 3.139.173, AVC-X3900H 3.139.175 |
+| Home Assistant Core          | 2026.11.3 |
+| Python                       | 3.14.10 |
 
 Other Denon/Marantz HEOS generation receivers should work as the integration
-adapts to whatever the device reports, but only this combination has been
-exercised end to end.
+adapts to whatever the device reports, but only these receivers have been
+exercised end to end. Marantz receivers speak the same protocol and are discovered too, but
+have not been tested on hardware.
 
 ## Credits
 
@@ -254,3 +276,13 @@ respective owners.
 [maintainer]: https://github.com/LaserGuruGuy
 [hacs-shield]: https://img.shields.io/badge/HACS-Custom-41BDF5.svg?style=for-the-badge
 [hacs-url]: https://github.com/LaserGuruGuy/denon_avr
+
+
+## Home fork rebase (PR, not released)
+
+This branch follows upstream v1.3.0 and preserves the home AVR-X3600H
+Dolby Surround / Neural:X / Multi In + DSur fallback command tokens, the
+surround-speaker None option, and volume level = raw / 100. Receiver limits
+still cap writes. The prepared manifest version is 1.3.1, not a release.
+Upstream's newer architecture and features remain intact. No Home Assistant
+installation is changed by this PR.

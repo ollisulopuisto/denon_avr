@@ -2,7 +2,7 @@
 
 A synthesised, model-annotated reference of the Denon/Marantz telnet (and a few
 HTTP/HEOS) control commands, used as the ground truth when extending this
-integration's protocol profile (`custom_components/denon_avr/avr/protocol_profile.json`).
+integration's protocol profile (`custom_components/denon_avr/avr/protocol/protocol_profile.json`).
 
 It lists the **superset** of commands across recent AV receiver generations. The
 integration only ever *populates* an entity when the specific connected receiver
@@ -98,7 +98,7 @@ legacy `MSPL2*`/`MSPL2X*`/`MSNEO:6*`/`MSDSD*`/`MSAUDYSSEY DSX`.
 | `PSSTW` / `PSSTH` | Stage width / height (DSX) | `nn` | `[ ]` |
 | `PSDSX` | Audyssey DSX | `OFF`/`ONH`/`ONW`/... | `[ ]` (DSX; not on Atmos-era units) |
 | `PSAUROPR` / `PSAUROST` | Auro-3D preset / strength | `SML/MED/LAR` / `nn` | `[ ]` gate: (Auro-3D models) |
-| `PSSP:` | Effect speaker selection | `FL`,`HF`,... | `[ ]` |
+| `PSSP:` | Effect speaker selection | `FL`,`HF`,... | `[x]` speaker_layout_protocol (read-only sensor) |
 
 ## 6. Audyssey (`PS…`)
 
@@ -304,3 +304,12 @@ if the setup interface changes); only the live per-band values use this API.
    the prefix is short and shared with siblings (e.g. `PV`).
 4. Action-only commands (cursor, triggers, presets, tuner nav) are **not**
    stateful entities; they belong to a future button/remote surface.
+
+
+## Added for the Web Control generation (2026-11, read-only verified)
+- `SPPR ?` -> `SPPR 1`: Speaker Preset 1/2 (AVC-X3900H; silent on the AVR-X3600H). Set `SPPR <n>`
+  follows the protocol family, not yet verified live. A preset switch re-queries the speaker setup.
+- `PSSP: ?` -> `PSSP:HF`: effect speaker selection (height/wide); answers on both. Read-only sensor.
+- `VSSCH ?` -> `VSSCHOFF` on the AVC-X3900H (new token next to AUTO/48P/...); write not verified.
+- `SSSPC` presence tokens YES/NO (Web Control) next to sizes LAR/SMA/NON (legacy); no END line.
+- `SSCFR<grp> FUL` = Full Range (0 in the web value list).

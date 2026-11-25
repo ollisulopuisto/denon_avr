@@ -1,9 +1,4 @@
-"""Diagnostics support for the Denon AVR integration.
-
-Dumps the discovery model and the current state so issues can be debugged
-without direct access to the receiver. No credentials are involved; the MAC
-address is redacted as a courtesy.
-"""
+"""Diagnostics support for the Denon AVR integration."""
 
 from __future__ import annotations
 
@@ -15,7 +10,7 @@ from homeassistant.core import HomeAssistant
 
 from .coordinator import DenonAvrConfigEntry
 
-TO_REDACT = {"mac_address"}
+TO_REDACT = {"mac_address", "serial_number"}
 
 
 async def async_get_config_entry_diagnostics(
@@ -30,6 +25,24 @@ async def async_get_config_entry_diagnostics(
 
     return {
         "available": device.available,
+        "setup_web_interface": device.setup_interface,
+        "web_reachable": device.web_reachable,
+        "stats": device.stats,
+        "entities": {"known": len(coordinator.known_keys), "created": len(coordinator.created_keys)},
+        "setup_web": {
+            name: {
+                "availability": {
+                    tag: {"display": av.display, "gray": av.gray}
+                    for tag, av in section.availability_map().items()
+                },
+                "collections": {
+                    spec["id"]: {slot: asdict(item) for slot, item in section.collection(spec["id"]).items()}
+                    for spec in section.collection_specs()
+                },
+                "value_lists": {spec["id"]: section.value_list(spec["id"]) for spec in section.value_list_specs()},
+            }
+            for name, section in (("video", device.video_config), ("speakers", device.speaker_config))
+        },
         "device": async_redact_data(asdict(discovery.device), TO_REDACT),
         "features": sorted(discovery.features),
         "zones": [asdict(zone) for zone in discovery.zones],
