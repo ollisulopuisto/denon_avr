@@ -176,30 +176,42 @@ def introspection_queries(profile: ProtocolProfile) -> list[str]:
     return [spec["query"] for spec in profile.introspection.values() if spec.get("query")]
 
 
-def resync_queries(profile: ProtocolProfile, discovery: Discovery) -> list[str]:
+def static_resync_queries(profile: ProtocolProfile) -> tuple[tuple[str, ...], tuple[str, ...]]:
+    """Cache immutable queries around the dynamic zone insertion point."""
+    before = dict.fromkeys(
+        [spec.get("query") for spec in profile.introspection.values()]
+        + [spec.query for spec in profile.controls_by_scope("core")]
+    )
+    after = dict.fromkeys(spec.get("query") for spec in profile.readonly.values())
+    return tuple(q for q in before if q), tuple(q for q in after if q)
+
+
+def resync_queries(
+    profile: ProtocolProfile,
+    discovery: Discovery,
+    static: tuple[tuple[str, ...], tuple[str, ...]] | None = None,
+) -> list[str]:
     """The ordered, de-duplicated query list that resynchronises the full state."""
 
     queries: list[str] = []
+    seen: set[str] = set()
 
     def add(query: str | None) -> None:
-        if query and query not in queries:
+        if query and query not in seen:
+            seen.add(query)
             queries.append(query)
 
-    # Introspection first so the source and channel lists (which entities are built from) arrive
-    # as early as possible after connecting.
-    for spec in profile.introspection.values():
-        add(spec.get("query"))
-    # Core controls (main zone) are always present.
-    for spec in profile.controls_by_scope("core"):
-        add(spec.query)
+    before, after = static if static is not None else static_resync_queries(profile)
+    for query in before:
+        add(query)
     # Additional zones use the 'Z<index>' query, one per discovered zone.
     prefix = profile.zones.get("additional_prefix", "Z")
     for zone in discovery.zones:
         if not zone.is_main:
             add(f"{prefix}{zone.index}?")
     # Read only audio information.
-    for spec in profile.readonly.values():
-        add(spec.get("query"))
+    for query in after:
+        add(query)
     # Feature controls, only those the receiver advertises.
     for spec in profile.feature_controls():
         if spec.feature and discovery.supports(spec.feature):

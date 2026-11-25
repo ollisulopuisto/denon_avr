@@ -14,6 +14,7 @@ from ..models import (
 from .profile import ProtocolProfile
 
 _LOGGER = logging.getLogger(__name__)
+_SOUND_MODE_RE = re.compile(r"^(\d+)(.*)$")
 
 
 class TelnetParser:
@@ -74,6 +75,23 @@ class TelnetParser:
             reverse=True,
         )
 
+        self._feature_buckets = {}
+        for prefix, spec in self._feature_matchers:
+            self._feature_buckets.setdefault(prefix[:2], []).append((prefix, spec))
+        self._readonly_buckets = {}
+        for control_id, spec in self._readonly_matchers:
+            prefix = spec.get("prefix", "")
+            if prefix:
+                self._readonly_buckets.setdefault(prefix[:2], []).append((control_id, spec))
+        self._speaker_grammar = profile.speakers
+        self._speaker_tokens = self._speaker_grammar.get("tokens", {})
+        self._speaker_absent = set(self._speaker_tokens.get("absent", []))
+        self._speaker_count_re = re.compile(self._speaker_tokens.get("count_pattern", r"^(\d+)SP$"))
+        self._speaker_groups = self._speaker_grammar.get("groups", {})
+        self._speaker_count_groups = self._speaker_grammar.get("count_groups", {})
+        self._level_reference = profile.level_reference
+        self._list_terminator = profile.list_terminator
+
     @property
     def open_lists(self) -> frozenset[str]:
         """Prefixes of END-terminated lists that started and have not ended yet."""
@@ -93,7 +111,7 @@ class TelnetParser:
     def _track_list(self, line: str) -> None:
         for prefix in self._terminated:
             if line.startswith(prefix):
-                if line[len(prefix):].strip().startswith(self._profile.list_terminator):
+                if line[len(prefix):].strip().startswith(self._list_terminator):
                     self._open_lists.discard(prefix)
                 else:
                     self._open_lists.add(prefix)
@@ -114,77 +132,78 @@ class TelnetParser:
 
     # Dispatch order matters because several prefixes overlap.
     def _dispatch(self, line: str, state: AvrState) -> bool:
-        if line.startswith("PW"):
+        prefix_2 = line[:2]
+        if prefix_2 == "PW":
             return self._set_system_power(line[2:], state)
-        if line.startswith("ZM"):
+        if prefix_2 == "ZM":
             on = line[2:].strip() == "ON"
             state.zone("main").power = on
             # Mirror into values so the (optional) main-power switch reads state.
             state.values["main_power"] = on
             return True
-        if line.startswith("MVMAX"):
+        if prefix_2 == "MV" and line.startswith("MVMAX"):
             return self._set_volume_max("main", line[5:], state)
-        if line.startswith("MV") and not line.startswith(("MVUP", "MVDOWN")):
+        if prefix_2 == "MV" and not line.startswith(("MVUP", "MVDOWN")):
             return self._set_volume("main", line[2:], state)
-        if line.startswith("MU"):
+        if prefix_2 == "MU":
             on = line[2:].strip() == "ON"
             state.zone("main").muted = on
             # Mirror into values so the (optional) main-mute switch reads state.
             state.values["main_mute"] = on
             return True
-        if line.startswith("MSQUICK"):
+        if prefix_2 == "MS" and line.startswith("MSQUICK"):
             # Current main zone quick select preset number (0 = none).
             token = line[7:].strip()
             if token.isdigit():
                 state.values["quick_select"] = int(token)
                 return True
             return False
-        if line.startswith("MS"):
+        if prefix_2 == "MS":
             return self._set_sound_mode(line[2:], state)
-        if line.startswith("SI"):
+        if prefix_2 == "SI":
             state.zone("main").source = line[2:].strip()
             return True
-        if line.startswith("SV"):
+        if prefix_2 == "SV":
             state.values["video_select"] = line[2:].strip()
             return True
-        if line.startswith("SSLEV"):
+        if prefix_2 == "SS" and line.startswith("SSLEV"):
             return self._set_channel(line[5:], state.channel_levels)
-        if line.startswith("SSSDE"):
+        if prefix_2 == "SS" and line.startswith("SSSDE"):
             return self._set_distance(line[5:], state.channel_distances)
-        if line.startswith("SSCFR"):
+        if prefix_2 == "SS" and line.startswith("SSCFR"):
             return self._set_crossover(line[5:], state)
-        if line.startswith("CV"):
+        if prefix_2 == "CV":
             return self._set_channel(line[2:], state.channel_trims)
         if len(line) >= 2 and line[0] == "Z" and line[1].isdigit():
             return self._set_zone(int(line[1]), line[2:], state)
-        if line.startswith("SSFUN"):
+        if prefix_2 == "SS" and line.startswith("SSFUN"):
             return self._set_source_name(line[5:])
-        if line.startswith("SSSOD"):
+        if prefix_2 == "SS" and line.startswith("SSSOD"):
             return self._set_source_visibility(line[5:])
-        if line.startswith("SSSMG"):
+        if prefix_2 == "SS" and line.startswith("SSSMG"):
             # Current sound mode genre group (MOV/MUS/GAM/PUR), reported directly.
             group = line[5:].strip()
-            if group and not group.startswith(self._profile.list_terminator):
+            if group and not group.startswith(self._list_terminator):
                 state.values["sound_mode_genre"] = group
                 return True
             return False
-        if line.startswith("SSQSNZMA"):
+        if prefix_2 == "SS" and line.startswith("SSQSNZMA"):
             return self._set_quick_select_name(line[8:])
-        if line.startswith("SSSPC"):
+        if prefix_2 == "SS" and line.startswith("SSSPC"):
             return self._set_speaker_config(line[5:], state)
-        if line.startswith("OPSMLALL"):
+        if prefix_2 == "OP" and line.startswith("OPSMLALL"):
             return self._set_sound_mode_list(line[8:], state=state)
-        if line.startswith("OPSML"):
+        if prefix_2 == "OP" and line.startswith("OPSML"):
             return self._set_current_sound_mode(line[5:], state)
 
         # Read only audio information.
-        for control_id, spec in self._readonly_matchers:
+        for control_id, spec in self._readonly_buckets.get(prefix_2, ()):
             prefix = spec.get("prefix", "")
             if prefix and line.startswith(prefix):
                 return self._set_readonly(control_id, spec, line[len(prefix):], state)
 
         # Generic feature controls.
-        for prefix, spec in self._feature_matchers:
+        for prefix, spec in self._feature_buckets.get(prefix_2, ()):
             if line.startswith(prefix):
                 remainder = line[len(prefix):]
                 if spec.get("exact_enum") and remainder.strip() not in spec.values:
@@ -238,7 +257,7 @@ class TelnetParser:
         """Parse an OPSMLALL entry (all genre groups) into the flat mode set."""
 
         remainder = remainder.strip()
-        if remainder.startswith(self._profile.list_terminator):
+        if remainder.startswith(self._list_terminator):
             if self._complete(self._opsmlall_indices):
                 self._discovery.all_sound_modes = list(self._opsmlall_pending)
                 self._discovery.sound_mode_groups = self._opsmlall_groups_pending
@@ -257,7 +276,7 @@ class TelnetParser:
         if not remainder:
             return False
         genre = remainder[:3]
-        match = re.match(r"^(\d+)(.*)$", remainder[3:])
+        match = _SOUND_MODE_RE.match(remainder[3:])
         if not match:
             return False
         digits, name = match.group(1), match.group(2).strip()
@@ -278,7 +297,7 @@ class TelnetParser:
         """Parse an OPSML entry (modes selectable in the CURRENT context/group)."""
 
         remainder = remainder.strip()
-        if remainder.startswith(self._profile.list_terminator):
+        if remainder.startswith(self._list_terminator):
             if self._complete(self._opsml_indices):
                 self._discovery.current_sound_modes = list(self._opsml_pending)
             else:
@@ -288,7 +307,7 @@ class TelnetParser:
             self._opsml_pending = []
             self._opsml_indices = []
             return True
-        match = re.match(r"^(\d+)(.*)$", remainder)
+        match = _SOUND_MODE_RE.match(remainder)
         if not match:
             return False
         digits, name = match.group(1), match.group(2).strip()
@@ -308,7 +327,7 @@ class TelnetParser:
 
     def _set_channel(self, remainder: str, target: dict[str, float]) -> bool:
         remainder = remainder.strip()
-        if not remainder or remainder == self._profile.list_terminator:
+        if not remainder or remainder == self._list_terminator:
             return False
         parts = remainder.split()
         if len(parts) != 2:
@@ -317,14 +336,14 @@ class TelnetParser:
         value = decode_half_step(raw)
         if value is None:
             return False
-        target[code] = value - self._profile.level_reference
+        target[code] = value - self._level_reference
         return True
 
     def _set_distance(self, remainder: str, target: dict[str, float]) -> bool:
         """Parse an 'SSSDE<CODE> <value>' speaker distance line into `target`."""
 
         remainder = remainder.strip()
-        if not remainder or remainder.startswith(self._profile.list_terminator):
+        if not remainder or remainder.startswith(self._list_terminator):
             return False
         parts = remainder.split()
         if len(parts) != 2:
@@ -340,7 +359,7 @@ class TelnetParser:
         """Parse an 'SSCFR...' crossover line."""
 
         remainder = remainder.strip()
-        if not remainder or remainder.startswith(self._profile.list_terminator):
+        if not remainder or remainder.startswith(self._list_terminator):
             return False
         parts = remainder.split()
         all_group = self._profile.introspection.get("crossover", {}).get(
@@ -393,7 +412,7 @@ class TelnetParser:
 
     def _set_source_name(self, remainder: str) -> bool:
         remainder = remainder.strip()
-        if not remainder or remainder.startswith(self._profile.list_terminator):
+        if not remainder or remainder.startswith(self._list_terminator):
             return False
         code, _, name = remainder.partition(" ")
         name = name.rstrip() or code
@@ -402,7 +421,7 @@ class TelnetParser:
 
     def _set_source_visibility(self, remainder: str) -> bool:
         remainder = remainder.strip()
-        if not remainder or remainder.startswith(self._profile.list_terminator):
+        if not remainder or remainder.startswith(self._list_terminator):
             return False
         code, _, flag = remainder.partition(" ")
         visible_token = self._profile.introspection["source_visibility"].get(
@@ -420,6 +439,7 @@ class TelnetParser:
             if source.code == code:
                 if name is not None:
                     source.name = name
+                    self._discovery.invalidate_source_cache()
                 if visible is not None:
                     source.visible = visible
                 return
@@ -435,7 +455,7 @@ class TelnetParser:
         """Parse a 'QS<n> <name>' quick select entry into the discovery model."""
 
         remainder = remainder.strip()
-        if not remainder or remainder.startswith(self._profile.list_terminator):
+        if not remainder or remainder.startswith(self._list_terminator):
             return False
         code, _, name = remainder.partition(" ")
         name = name.strip()
@@ -450,7 +470,7 @@ class TelnetParser:
         """One SSSPC line."""
 
         remainder = remainder.strip()
-        if not remainder or remainder.startswith(self._profile.list_terminator):
+        if not remainder or remainder.startswith(self._list_terminator):
             return False
         group, _, value = remainder.partition(" ")
         value = value.strip()
@@ -471,24 +491,21 @@ class TelnetParser:
         return True
 
     def _speaker_token_kind(self, value: str) -> str:
-        tokens = self._profile.speakers.get("tokens", {})
+        tokens = self._speaker_tokens
         if value in tokens.get("presence", {}):
             return "presence"
         if value in tokens.get("size", []):
             return "size"
-        if re.match(tokens.get("count_pattern", r"^(\d+)SP$"), value):
+        if self._speaker_count_re.match(value):
             return "count"
         return "other"
 
     def _recompute_configured_channels(self) -> None:
         """Derive the configured channel codes from the SSSPC speaker config."""
 
-        speakers = self._profile.speakers
-        tokens = speakers.get("tokens", {})
-        absent = set(tokens.get("absent", []))
-        pattern = tokens.get("count_pattern", r"^(\d+)SP$")
-        groups = speakers.get("groups", {})
-        count_groups = speakers.get("count_groups", {})
+        absent = self._speaker_absent
+        groups = self._speaker_groups
+        count_groups = self._speaker_count_groups
 
         configured: set[str] = set()
         for group, kinds in self._spc_kinds.items():
@@ -498,7 +515,7 @@ class TelnetParser:
                 continue
             if group in count_groups:
                 by_count = count_groups[group].get("by_count", {})
-                match = re.match(pattern, kinds.get("count", ""))
+                match = self._speaker_count_re.match(kinds.get("count", ""))
                 count = match.group(1) if match else "1"
                 configured.update(by_count.get(count, by_count.get("1", [])))
             elif group in groups:
@@ -535,7 +552,7 @@ class TelnetParser:
             value = decode_half_step(remainder)
             if value is None:
                 return False
-            state.values[spec.id] = value - self._profile.level_reference
+            state.values[spec.id] = value - self._level_reference
         elif kind == "centered":
             value = decode_centered(remainder, int(spec.get("center", 0)))
             if value is None:

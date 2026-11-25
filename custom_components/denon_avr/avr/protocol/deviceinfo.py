@@ -67,33 +67,49 @@ def parse_device_info(
             ZoneDescriptor(id=f"zone{index}", index=index, name=f"Zone {index}")
         )
 
-    # Advertised features: every FuncName token anywhere in the tree.
-    discovery.features = {
-        (node.text or "").strip()
-        for node in root.iter("FuncName")
-        if node.text and node.text.strip()
-    }
+    # Performance optimization: Consolidate XML tree traversals into a single pass.
+    # Deviceinfo.xml contains 2,000+ elements. Previously, 4 separate traversals
+    # were performed: root.iter("FuncName"), root.iter("Ch"), root.iter() for
+    # indexed blocks, and root.iter("Source"). One index serves all consumers.
+    target_blocks = set(feature_names or ()) | {"ToneControlSet_AVR", "SoundMode", "Volume", "QuickSelect", "SubwooferLevel"}
+    indexed_blocks: dict[str, ET.Element] = {}
+    seen_sources: set[str] = {s.code for s in discovery.sources}
 
-    # Channel list with codes, display names and per channel dB ranges, all read from the
-    # receiver's Channel Level section.
-    for ch in root.iter("Ch"):
-        code = (ch.findtext("Name") or "").strip()
-        name = (ch.findtext("DispName") or "").strip()
-        if not code:
-            continue
-        # The receiver includes a synthetic "Reset" entry with a zero range; skip anything that is
-        # not a real, adjustable channel.
-        min_range = ch.findtext("MinRange")
-        max_range = ch.findtext("MaxRange")
-        if name.lower() == "reset" or min_range == max_range:
-            continue
-        discovery.channels.append(ChannelDescriptor(code=code, name=name or code))
-        meta = _range_from_block(ch)
-        if meta:
-            discovery.numeric_meta[code] = meta
+    for node in root.iter():
+        tag = node.tag
+        if tag == "FuncName":
+            if node.text:
+                text = node.text.strip()
+                if text:
+                    discovery.features.add(text)
+        elif tag == "Ch":
+            code = (node.findtext("Name") or "").strip()
+            name = (node.findtext("DispName") or "").strip()
+            if not code:
+                continue
+            # The receiver includes a synthetic "Reset" entry with a zero range;
+            # skip anything that is not a real, adjustable channel.
+            min_range = node.findtext("MinRange")
+            max_range = node.findtext("MaxRange")
+            if name.lower() == "reset" or min_range == max_range:
+                continue
+            discovery.channels.append(ChannelDescriptor(code=code, name=name or code))
+            meta = _range_from_block(node)
+            if meta:
+                discovery.numeric_meta[code] = meta
+        elif tag == "Source":
+            # Fallback source list from the InputSource tree (used only when the telnet
+            # SSFUN/SSSOD introspection is unavailable). The path leaf is the name.
+            path = node.findtext("SourcePath") or ""
+            leaf = path.rsplit("/", 1)[-1].strip()
+            if leaf and leaf.upper() != "SOURCE" and leaf not in seen_sources:
+                seen_sources.add(leaf)
+                discovery.sources.append(SourceDescriptor(code=leaf, name=leaf))
+        elif tag in target_blocks and tag not in indexed_blocks:
+            indexed_blocks[tag] = node
 
     # Tone control dB ranges, read from the receiver's tone control block.
-    tone = root.find(".//ToneControlSet_AVR")
+    tone = indexed_blocks.get("ToneControlSet_AVR")
     if tone is not None:
         for feature in ("Bass", "Treble"):
             meta = _range_from_tone(tone, feature)
@@ -103,14 +119,14 @@ def parse_device_info(
     # Titles, option labels and numeric ranges for feature controls.
     enum_features = enum_features or set()
     for feature in feature_names or ():
-        block = root.find(f".//{feature}")
+        block = indexed_blocks.get(feature)
         if block is None:
             continue
-        labels = [
-            (node.text or "").strip()
-            for node in block.iter("DispName")
-            if node.text and node.text.strip()
-        ]
+        labels = []
+        for node in block.iter("DispName"):
+            text = (node.text or "").strip()
+            if text:
+                labels.append(text)
         if labels:
             discovery.feature_names[feature] = labels[0]
             if feature in enum_features and len(labels) >= 2:
@@ -120,7 +136,7 @@ def parse_device_info(
             discovery.numeric_meta[feature] = meta
 
     # Quick select presets (capability and default names), when controllable.
-    quick = root.find(".//QuickSelect")
+    quick = indexed_blocks.get("QuickSelect")
     if quick is not None and (quick.findtext("Control") or "").strip() == "1":
         for child in quick:
             number = (child.findtext("No") or "").strip()
@@ -129,13 +145,15 @@ def parse_device_info(
                 discovery.quick_select_names[int(number)] = name
 
     # Number of subwoofers the receiver supports (capability, not user setup).
-    sub_count = root.findtext(".//SubwooferLevel/SubwooferNum")
+    sub_block = indexed_blocks.get("SubwooferLevel")
+    sub_count = sub_block.findtext("SubwooferNum") if sub_block is not None else None
     if sub_count and sub_count.strip().isdigit():
         discovery.subwoofer_max = int(sub_count.strip())
 
     # Sound mode genre names (Movie/Music/Game/Pure), read from the receiver's SoundMode genre
     # list.
-    genre_list = root.find(".//SoundMode/Genre/List")
+    sound_block = indexed_blocks.get("SoundMode")
+    genre_list = sound_block.find("Genre/List") if sound_block is not None else None
     if genre_list is not None:
         for value in genre_list.findall("Value"):
             disp = (value.findtext("DispName") or "").strip()
@@ -144,7 +162,7 @@ def parse_device_info(
 
     # Master volume scale, read from the receiver's Volume block: the absolute maximum, the step,
     # and the reference (the absolute value shown as 0.0 dB).
-    volume = root.find(".//Volume")
+    volume = indexed_blocks.get("Volume")
     if volume is not None:
         scale: dict[str, float] = {}
         max_value = _num(volume, "MaxValue")
@@ -154,7 +172,7 @@ def parse_device_info(
         if step_value is not None:
             scale["step"] = step_value
         # The reference is the Absolute value whose Relative label is "0.0dB".
-        for param in volume.findall(".//Param"):
+        for param in volume.iter("Param"):
             relative = (param.findtext("Relative") or "").strip().lower()
             if relative in ("0.0db", "0db"):
                 reference = _num(param, "Absolute")
@@ -163,15 +181,6 @@ def parse_device_info(
                 break
         if scale:
             discovery.volume = scale
-
-    # Fallback source list from the InputSource tree (used only when the telnet SSFUN/SSSOD
-    # introspection is unavailable).
-    for source in root.iter("Source"):
-        path = source.findtext("SourcePath") or ""
-        leaf = path.rsplit("/", 1)[-1].strip()
-        if leaf and leaf.upper() != "SOURCE":
-            if not any(s.code == leaf for s in discovery.sources):
-                discovery.sources.append(SourceDescriptor(code=leaf, name=leaf))
 
     return discovery
 

@@ -42,10 +42,15 @@ class StateSync:
         self._state = state
         self._parser = parser
         self._sink = sink
+        self._base_queries = commands.static_resync_queries(profile)
         self._tasks = tasks
         self._notify_hook = notify
         # Data driven coalesced re-query groups (profile 'refresh' section).
         self._refresh_groups = profile.refresh_groups
+        self._refresh_triggers = tuple(
+            (key, tuple(group["on"]))
+            for key, group in self._refresh_groups.items() if group.get("on")
+        )
         self._refresh_scheduled: set[str] = set()
         # Web documents have no push: groups may name web sections ("web") to re-read when a
         # related telnet event arrives.
@@ -117,8 +122,8 @@ class StateSync:
         # The first modelled line of a prefix answers our own resync.
         hits = {
             group_id: prefix
-            for group_id, group in self._refresh_groups.items()
-            if (prefix := next((p for p in group.get("on") or () if line.startswith(p)), None)) is not None
+            for group_id, prefixes in self._refresh_triggers
+            if (prefix := next((p for p in prefixes if line.startswith(p)), None)) is not None
         }
         fresh = {prefix for prefix in hits.values() if prefix not in self._seen_triggers}
         self._seen_triggers |= fresh
@@ -144,7 +149,7 @@ class StateSync:
     # Resync ----------------------------------------------------------------
 
     def resync_queries(self) -> list[str]:
-        return commands.resync_queries(self._profile, self._discovery)
+        return commands.resync_queries(self._profile, self._discovery, self._base_queries)
 
     async def resynchronise(self) -> None:
         """Query the full state after connecting so nothing is stale."""
